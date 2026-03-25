@@ -1,0 +1,1220 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CaloXmeal | VIP Analiz</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    
+    <style>
+        /* --- KÖK DEĞİŞKENLER VE TEMEL AYARLAR --- */
+        :root { 
+            --bg: #050b14; 
+            --card-bg: rgba(22, 27, 42, 0.65); 
+            --primary: #10b981; 
+            --primary-hover: #059669;
+            --accent: #0ea5e9; 
+            --premium: #f59e0b; 
+            --text: #f8fafc; 
+            --text-muted: #94a3b8;
+            --danger: #ef4444; 
+            --neutral: #1e293b; 
+            --glass-border: rgba(255, 255, 255, 0.08);
+        }
+        
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; scroll-behavior: smooth; }
+        
+        body { 
+            background: linear-gradient(135deg, var(--bg) 0%, #0a1128 100%);
+            color: var(--text); 
+            display: flex; 
+            justify-content: center; 
+            min-height: 100vh; 
+            padding: 20px; 
+            padding-bottom: 100px; /* ALT NAVİGASYON İÇİN BOŞLUK EKLENDİ */
+            background-attachment: fixed;
+        }
+
+        /* --- ANA KART TASARIMI --- */
+        .app-card { 
+            width: 100%; 
+            max-width: 440px; 
+            background: var(--card-bg); 
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 30px; 
+            padding: 35px 25px; 
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1); 
+            border: 1px solid var(--glass-border); 
+            height: fit-content; 
+            position: relative; 
+            transition: all 0.3s ease;
+        }
+
+        .auth-container h1 { 
+            font-size: 2.2rem; 
+            text-align: center; 
+            margin-bottom: 25px; 
+            background: linear-gradient(to right, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 900; 
+            letter-spacing: -0.5px;
+        }
+
+        /* --- INPUT VE BUTONLAR --- */
+        input, select, textarea { 
+            width: 100%; 
+            padding: 16px; 
+            border-radius: 16px; 
+            background: rgba(11, 15, 26, 0.6); 
+            border: 1px solid var(--glass-border); 
+            color: white; 
+            margin-bottom: 15px; 
+            text-align: center; 
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+            outline: none;
+        }
+        input:focus, select:focus, textarea:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.15);
+            background: rgba(11, 15, 26, 0.8);
+        }
+
+        .btn { 
+            width: 100%; 
+            padding: 16px; 
+            border-radius: 16px; 
+            border: none; 
+            font-weight: 800; 
+            font-size: 0.95rem;
+            cursor: pointer; 
+            color: white; 
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); 
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .btn:hover { transform: translateY(-2px); filter: brightness(1.1); box-shadow: 0 10px 20px -10px rgba(0,0,0,0.5); }
+        .btn:active { transform: translateY(0); }
+        .btn-main { background: linear-gradient(135deg, var(--primary), var(--primary-hover)); box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3); }
+        .btn-sub { background: linear-gradient(135deg, var(--accent), #0284c7); margin-top: 10px; }
+        .btn-outline { background: transparent; color: var(--text-muted); border: 1px solid var(--glass-border); margin-top: 10px; font-size: 0.85rem; }
+        .btn-outline:hover { background: rgba(255,255,255,0.05); color: white; }
+
+        /* --- KAMERA VE SONUÇ EKRANI --- */
+        .cam-box { 
+            width: 100%; 
+            aspect-ratio: 1/1; 
+            background: #000; 
+            border-radius: 24px; 
+            overflow: hidden; 
+            border: 1px solid var(--glass-border); 
+            margin-bottom: 25px; 
+            position: relative; 
+            box-shadow: 0 15px 35px -15px rgba(0,0,0,0.6);
+        }
+        video { width: 100%; height: 100%; object-fit: cover; }
+        .freeze-overlay { 
+            display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
+            background: rgba(16, 185, 129, 0.25); backdrop-filter: blur(8px); 
+            z-index: 5; align-items: center; justify-content: center; color: white; 
+            font-weight: 900; font-size: 1.2rem; text-shadow: 0 4px 15px rgba(0,0,0,0.8); 
+            letter-spacing: 2px;
+            animation: pulse-overlay 2s infinite;
+        }
+
+        #results { display: none; flex-direction: column; gap: 15px; margin-top: 25px; padding: 0; background: transparent; }
+        .report-card { 
+            background: rgba(11, 15, 26, 0.7); 
+            border-radius: 20px; 
+            padding: 20px; 
+            border-top: 4px solid var(--accent); 
+            border-bottom: 1px solid var(--glass-border);
+            border-left: 1px solid var(--glass-border);
+            border-right: 1px solid var(--glass-border);
+            position: relative; 
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.3);
+        }
+        .report-tag { font-size: 0.75rem; font-weight: 800; color: var(--accent); text-transform: uppercase; margin-bottom: 10px; letter-spacing: 1px; }
+        .report-txt { font-size: 0.95rem; line-height: 1.7; color: #e2e8f0; white-space: pre-line; font-weight: 500; }
+        
+        .score-container { margin-top: 20px; background: rgba(0,0,0,0.2); padding: 15px; border-radius: 15px; }
+        .score-label { display: flex; justify-content: space-between; font-size: 0.75rem; margin-bottom: 8px; color: var(--text-muted); font-weight: bold; }
+        .score-bar-bg { height: 10px; width: 100%; background: linear-gradient(to right, #ef4444, #f59e0b, #10b981); border-radius: 10px; position: relative; }
+        .score-pointer { 
+            position: absolute; top: -6px; width: 22px; height: 22px; 
+            background: #fff; border: 4px solid var(--card-bg); border-radius: 50%; 
+            transform: translateX(-50%); transition: left 1.5s cubic-bezier(0.4, 0, 0.2, 1); 
+            box-shadow: 0 0 15px rgba(255,255,255,0.6); z-index: 10; 
+        }
+
+        /* --- GEÇMİŞ VE LİSTELER --- */
+        .history-box { 
+            background: rgba(255,255,255,0.03); padding: 18px; border-radius: 18px; 
+            margin-top: 12px; font-size: 0.9rem; border-left: 4px solid var(--primary); 
+            cursor: pointer; transition: all 0.2s; display: flex; flex-direction: column; gap: 6px; 
+            border-top: 1px solid var(--glass-border); border-right: 1px solid var(--glass-border); border-bottom: 1px solid var(--glass-border);
+        }
+        .history-box:hover { background: rgba(255,255,255,0.08); transform: translateX(5px); }
+        .history-meta { font-size: 0.75rem; color: var(--text-muted); font-weight: 700; }
+        .history-meal { color: var(--text); font-weight: 800; font-size: 1rem; }
+        
+        .streak-badge { 
+            display:none; background: linear-gradient(135deg, rgba(249, 115, 22, 0.2), rgba(249, 115, 22, 0.05)); 
+            color:#f97316; padding:8px 16px; border-radius:20px; font-weight:900; font-size:0.9rem; 
+            border:1px solid rgba(249, 115, 22, 0.3); animation: pulse 2s infinite; 
+            backdrop-filter: blur(5px);
+        }
+        @keyframes pulse { 0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(249, 115, 22, 0.4); } 70% { transform: scale(1.05); box-shadow: 0 0 0 10px rgba(249, 115, 22, 0); } 100% { transform: scale(1); } }
+        @keyframes pulse-overlay { 0% { opacity: 0.8; } 50% { opacity: 1; } 100% { opacity: 0.8; } }
+        
+        .bell-container, .friends-btn { 
+            cursor: pointer; display: flex; align-items: center; justify-content: center; 
+            width: 45px; height: 45px; background: rgba(255,255,255,0.05); 
+            border-radius: 50%; position: relative; border: 1px solid var(--glass-border);
+            transition: all 0.2s;
+        }
+        .bell-container:hover, .friends-btn:hover { background: rgba(255,255,255,0.1); }
+        .notif-badge { 
+            position: absolute; top: -2px; right: -2px; background: var(--danger); 
+            color: white; font-size: 0.65rem; font-weight: 900; width: 18px; height: 18px; 
+            border-radius: 50%; display: flex; align-items: center; justify-content: center; 
+            box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+        }
+        .notif-dropdown, .friends-dropdown { 
+            display: none; position: absolute; top: 55px; right: 0; width: 300px; 
+            background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(20px); 
+            border: 1px solid var(--glass-border); border-radius: 20px; padding: 20px; 
+            z-index: 100; max-height: 350px; overflow-y: auto; box-shadow: 0 20px 40px rgba(0,0,0,0.8); 
+        }
+        .notif-item { background: rgba(0,0,0,0.3); padding: 12px; border-radius: 12px; margin-bottom: 10px; font-size: 0.85rem; border-left: 3px solid var(--accent); color: #cbd5e1; }
+        
+        .user-tag { font-size: 1.15rem; font-weight: 900; color: var(--primary); margin-top: 5px; letter-spacing: 0.5px; }
+        
+        .role-selector { display: flex; background: rgba(0,0,0,0.3); border-radius: 16px; margin-bottom: 20px; padding: 6px; border: 1px solid var(--glass-border); }
+        .role-btn { flex: 1; padding: 12px; border-radius: 12px; border: none; background: transparent; color: var(--text-muted); cursor: pointer; font-weight: 700; transition: 0.3s; font-size: 0.9rem; }
+        .role-btn.active { background: var(--primary); color: white; box-shadow: 0 4px 10px rgba(16, 185, 129, 0.2); }
+        
+        /* --- MODAL TASARIMLARI --- */
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); backdrop-filter: blur(8px); padding: 20px; overflow-y: auto; }
+        .modal-content { 
+            background: var(--card-bg); margin: 10vh auto auto auto; padding: 30px; 
+            border-radius: 30px; max-width: 440px; border: 1px solid var(--primary); 
+            box-shadow: 0 25px 50px rgba(0,0,0,0.8); position: relative;
+            animation: modalFadeIn 0.3s ease;
+        }
+        @keyframes modalFadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        .partner-box { background: rgba(255,255,255,0.02); border: 1px dashed var(--glass-border); padding: 20px; border-radius: 20px; margin-top: 20px; text-align: center; }
+        .patient-card { background: linear-gradient(135deg, rgba(30, 41, 59, 0.8), rgba(15, 23, 42, 0.8)); border: 1px solid var(--glass-border); padding: 18px; border-radius: 20px; margin-bottom: 12px; cursor: pointer; transition: 0.3s; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.4); }
+        .patient-card:hover { border-color: var(--primary); transform: translateY(-2px); }
+        .broadcast-box { background: rgba(14, 165, 233, 0.05); border: 1px solid rgba(14, 165, 233, 0.2); padding: 20px; border-radius: 20px; margin-bottom: 25px; }
+        
+        .split-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 15px; }
+        .btn-neutral { background: rgba(255,255,255,0.05) !important; color: white !important; font-size: 0.8rem; padding: 14px; border: 1px solid var(--glass-border) !important; }
+        .btn-neutral:hover { background: rgba(255,255,255,0.1) !important; }
+        
+        .chat-box { display: flex; flex-direction: column; gap: 12px; max-height: 350px; overflow-y: auto; margin-bottom: 20px; padding: 15px; background: rgba(0,0,0,0.3); border-radius: 20px; border: 1px solid var(--glass-border); scrollbar-width: thin; }
+        .msg-lara { align-self: flex-start; background: linear-gradient(135deg, var(--neutral), #2d3748); color: white; padding: 12px 16px; border-radius: 20px 20px 20px 4px; font-size: 0.9rem; max-width: 85%; box-shadow: 0 4px 10px rgba(0,0,0,0.2); line-height: 1.5; }
+        .msg-user { align-self: flex-end; background: linear-gradient(135deg, var(--primary), var(--primary-hover)); color: white; padding: 12px 16px; border-radius: 20px 20px 4px 20px; font-size: 0.9rem; max-width: 85%; box-shadow: 0 4px 10px rgba(16, 185, 129, 0.2); }
+        
+        .loading-text { font-size: 1.1rem; color: var(--premium); font-weight: 900; text-align: center; padding: 30px; animation: blink 1.5s infinite; letter-spacing: 1px; }
+        @keyframes blink { 0% { opacity: 0.4; transform: scale(0.98); } 50% { opacity: 1; transform: scale(1); } 100% { opacity: 0.4; transform: scale(0.98); } }
+        
+        .friend-pill { display: block; padding: 12px; background: rgba(0,0,0,0.3); border: 1px solid var(--glass-border); border-radius: 12px; margin-bottom: 8px; color: var(--primary); cursor: pointer; font-size: 0.85rem; text-align: left; font-weight: 700; transition: 0.2s; }
+        .friend-pill:hover { background: rgba(16, 185, 129, 0.1); }
+
+        .side-by-side-btns { display: flex; gap: 12px; margin-top: 15px; }
+        .side-by-side-btns .btn { flex: 1; margin: 0; }
+
+        .macro-tracker { background: rgba(0,0,0,0.2); border-radius: 24px; padding: 20px; margin-top: 20px; border: 1px solid var(--glass-border); display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .macro-item { background: rgba(255,255,255,0.03); padding: 15px; border-radius: 16px; text-align: center; border: 1px solid rgba(255,255,255,0.02); }
+        .macro-label { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; font-weight: 800; margin-bottom: 8px; display: block; letter-spacing: 1px; }
+        .macro-progress { height: 8px; background: rgba(0,0,0,0.5); border-radius: 4px; overflow: hidden; margin: 8px 0; box-shadow: inset 0 1px 3px rgba(0,0,0,0.5); }
+        .macro-bar { height: 100%; transition: width 1s cubic-bezier(0.4, 0, 0.2, 1); border-radius: 4px; }
+        .macro-val { font-size: 0.85rem; font-weight: 900; color: var(--text); }
+        
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.4); }
+
+        /* --- ALT NAVİGASYON BARI VE SEKMELER --- */
+        .bottom-nav { 
+            position: fixed; bottom: 0; left: 0; width: 100%; height: 75px; 
+            background: rgba(10, 15, 28, 0.95); backdrop-filter: blur(15px); 
+            border-top: 1px solid var(--glass-border); display: none; 
+            justify-content: space-around; align-items: center; z-index: 9999; 
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+        .nav-item { 
+            display: flex; flex-direction: column; align-items: center; 
+            justify-content: center; color: var(--text-muted); width: 33%; 
+            cursor: pointer; transition: 0.3s; font-size: 0.75rem; font-weight: 800; 
+        }
+        .nav-item.active { color: var(--primary); }
+        .nav-icon { font-size: 1.5rem; margin-bottom: 4px; }
+        
+        .tab-content { display: none; width: 100%; animation: fadeIn 0.3s ease; }
+        .tab-content.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    </style>
+</head>
+<body>
+
+<div id="laraModal" class="modal">
+    <div class="modal-content">
+        <h3 id="txtLaraTitleModal" style="color:var(--accent); text-align:center; margin-bottom:20px; font-weight: 900;">🤖 YZ Diyetisyen: LARA</h3>
+        <div id="laraChatDisplayModal" class="chat-box"></div>
+        <div style="display:flex; gap:10px;">
+            <input type="text" id="laraInputModal" placeholder="Mesajınızı yazın..." style="margin-bottom:0; text-align:left;">
+            <button class="btn btn-main" style="width:70px; padding:0; font-size: 1.2rem;">🚀</button>
+        </div>
+        <button class="btn btn-outline" onclick="document.getElementById('laraModal').style.display='none'">Kapat</button>
+    </div>
+</div>
+
+<div id="sportQuestionsModal" class="modal">
+    <div class="modal-content">
+        <div id="sportInputArea">
+            <h3 id="txtSpTitle" style="color:var(--premium); text-align:center; margin-bottom:20px; font-weight: 900;">🏋️ Spor Programı Hazırlığı</h3>
+            <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:15px; text-align:center;">Size en uygun programı hazırlamam için:</p>
+            <input type="number" id="sqAge" placeholder="Yaşınız">
+            <input type="number" id="sqWeight" placeholder="Kilonuz (kg)">
+            <input type="number" id="sqDays" placeholder="Haftada kaç gün spor yapabilirsiniz?">
+            <select id="sqGoal" style="text-align-last: center;">
+                <option value="Yağ Yakımı">Yağ Yakımı</option>
+                <option value="Kas Kütlesi">Kas Kütlesi</option>
+                <option value="Form Koruma">Form Koruma</option>
+            </select>
+            <input type="text" id="sqEquipment" placeholder="Mekan (Ev/Salon) ve Ekipman Durumu">
+            <input type="text" id="sqInjury" placeholder="Sakatlık veya engel var mı?">
+            <button class="btn btn-main" style="background: linear-gradient(135deg, var(--premium), #d97706); color:black;" onclick="generateSportProgram()">PROGRAMI OLUŞTUR</button>
+        </div>
+        <div id="sportLoadingArea" style="display:none;">
+            <div class="loading-text">PLANINIZ OLUŞTURULUYOR... <br><br> Lütfen Bekleyin.</div>
+        </div>
+        <div id="sportResultArea" style="display:none;">
+            <h3 style="color:var(--primary); text-align:center; margin-bottom:20px; font-weight: 900;">Size Özel Spor Planı</h3>
+            <div id="sportPlanContent" class="report-txt" style="max-height: 400px; overflow-y: auto; background: rgba(0,0,0,0.3); padding: 20px; border-radius: 20px; border: 1px solid var(--glass-border);"></div>
+            <button class="btn btn-sub" style="background: linear-gradient(135deg, var(--danger), #b91c1c); margin-top:20px;" onclick="downloadSportPDF()">📄 PDF OLARAK İNDİR</button>
+            <button class="btn btn-outline" style="margin-top:10px;" onclick="resetSportModal()">YENİDEN DÜZENLE</button>
+        </div>
+        <button class="btn btn-outline" id="sportModalCloseBtn" onclick="document.getElementById('sportQuestionsModal').style.display='none'; resetSportModal();">Kapat</button>
+    </div>
+</div>
+
+<div id="detailModal" class="modal">
+    <div class="modal-content">
+        <h3 id="modalTitle" style="color:var(--primary); margin-bottom:20px; text-align:center; font-weight: 900;">Analiz Detayı</h3>
+        <div id="modalBody" class="report-txt" style="max-height: 400px; overflow-y: auto; background: rgba(0,0,0,0.3); padding: 20px; border-radius: 20px; border: 1px solid var(--glass-border);"></div>
+        
+        <div class="side-by-side-btns" style="margin-top:20px;">
+            <button id="btnModalBack" class="btn btn-neutral" style="display:none;" onclick="goBackToPatientHistory()">🔙 GERİ GİT</button>
+            <button class="btn btn-sub" onclick="document.getElementById('detailModal').style.display='none'">KAPAT</button>
+        </div>
+    </div>
+</div>
+
+<div class="app-card" id="mainCardContainer">
+    
+    <div id="topHeader" style="display:none; justify-content:space-between; align-items:center; margin-bottom: 25px;">
+        <div style="display: flex; align-items: center; gap: 15px;">
+            <span onclick="changeLang('tr')" style="font-size: 1.6rem; cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.2)'" onmouseout="this.style.transform='scale(1)'" title="Türkçe">🇹🇷</span>
+            <span onclick="changeLang('en')" style="font-size: 1.6rem; cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.2)'" onmouseout="this.style.transform='scale(1)'" title="English">🇺🇸</span>
+        </div>
+        <div id="streakBadge" class="streak-badge">
+            🔥 <span id="streakCount">0</span> <span id="txtSeri">Seri</span>
+        </div>
+        <div style="display: flex; gap:12px;">
+            <div class="bell-container" onclick="switchTab('tab-messages')" id="bellIcon" style="display:none;">
+                <span class="bell-icon" style="font-size: 1.2rem;">🔔</span>
+                <span class="notif-badge" id="notifBadge" style="display:none;">0</span>
+            </div>
+            <div class="friends-btn" id="friendListBtn" onclick="toggleFriends()" style="display:none;">
+                <span style="font-size: 1.2rem;">👤</span>
+                <div class="friends-dropdown" id="friendsDropdown">
+                    <h4 id="txtFriendsHead" style="color:white; margin-bottom:15px; text-align:center; font-size: 0.95rem; font-weight: 800;">Takip Ettiklerin</h4>
+                    <div id="friendsListContainer"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="loginView" class="auth-container">
+        <h1 id="txtAppName">CaloXmeal</h1>
+        <div class="role-selector">
+            <button class="role-btn active" id="btnRoleUser" onclick="setRole('user', this)">DANIŞAN</button>
+            <button class="role-btn" id="btnRoleDietician" onclick="setRole('dietician', this)">DİYETİSYEN</button>
+        </div>
+        <input type="email" id="lEmail" placeholder="E-posta Adresi">
+        <input type="password" id="lPass" placeholder="Şifre">
+        <button class="btn btn-main" onclick="doLogin()">GİRİŞ YAP</button>
+        <button class="btn btn-outline" style="border:none; margin-top:10px; font-size:0.8rem;" onclick="doReset()">Şifremi Unuttum?</button>
+        <button class="btn btn-outline" onclick="toggleView('regView')">Yeni Kayıt Oluştur</button>
+    </div>
+
+    <div id="regView" class="auth-container" style="display:none;">
+        <h1 id="txtRegTitle">KAYIT OL</h1>
+        <div id="regFields">
+            <div class="role-selector">
+                <button class="role-btn active" onclick="setRole('user', this)">DANIŞAN</button>
+                <button class="role-btn" onclick="setRole('dietician', this)">DİYETİSYEN</button>
+            </div>
+            <input type="email" id="rEmail" placeholder="E-posta Adresi">
+            <input type="text" id="rUser" placeholder="Kullanıcı Adı">
+            <input type="password" id="rPass" placeholder="Şifre">
+            <button class="btn btn-sub" onclick="doRegister()">HESABI OLUŞTUR</button>
+            <button class="btn btn-outline" onclick="toggleView('loginView')">Geri Dön</button>
+        </div>
+        <div id="verifyFields" style="display:none;">
+            <p style="color:var(--text-muted); text-align:center; font-size:0.85rem; margin-bottom:15px;">E-posta adresinize gönderilen 6 haneli kodu giriniz.</p>
+            <input type="text" id="vCode" placeholder="6 Haneli Kod" maxlength="6" style="letter-spacing: 5px; font-weight: bold; font-size: 1.2rem; text-align: center;">
+            <button class="btn btn-main" onclick="verifyAndRegister()">KODU DOĞRULA</button>
+            <button class="btn btn-outline" onclick="cancelVerify()">İptal Et</button>
+        </div>
+    </div>
+
+    <div id="dieticianView" style="display:none;">
+        <div style="text-align: center; margin-bottom: 25px;">
+            <h2 id="txtDietPortal" style="color:var(--primary); font-weight: 900; margin-bottom: 5px;">Diyetisyen Portalı</h2>
+            <div id="dMail" class="user-tag"></div>
+            <div style="margin-top:20px; background: rgba(0,0,0,0.2); padding: 20px; border-radius: 20px; border: 1px solid var(--glass-border);">
+                <p id="txtSetCode" style="font-size:0.85rem; color:var(--text-muted); text-align:center; margin-bottom: 10px;">Özel Kodunuzu Belirleyin:</p>
+                <input type="text" id="myDietCodeInput" maxlength="8" placeholder="Örn: DIET9900" style="background:rgba(0,0,0,0.5); font-weight: bold; font-size: 1.1rem; letter-spacing: 2px;">
+                <button class="btn btn-main" onclick="saveDieticianCode()">KODU KAYDET</button>
+                <div id="currentCodeDisplay" style="margin-top:15px; text-align:center; font-weight:900; color:var(--premium); font-size: 1.1rem;"></div>
+            </div>
+        </div>
+        <div class="broadcast-box">
+            <h4 id="txtBroadcast" style="color:var(--accent); margin-bottom:15px; font-size:0.95rem; font-weight: 800;">📢 Toplu Duyuru / Günlük Ödev</h4>
+            <textarea id="broadcastMsg" placeholder="Mesajınızı buraya yazın..." style="height:80px; resize: none;"></textarea>
+            <button id="btnBroadcast" class="btn btn-sub" onclick="sendBroadcast()" style="padding:14px; font-size:0.8rem;">HERKESE GÖNDER</button>
+        </div>
+        <h3 id="txtMyPatients" style="margin-bottom:20px; border-bottom:1px solid var(--glass-border); padding-bottom:10px; font-weight: 800;">Bağlı Hastalarım</h3>
+        <div id="patientList"></div>
+        <button class="btn btn-outline" onclick="auth.signOut(); location.reload();" style="margin-top:30px;">GÜVENLİ ÇIKIŞ</button>
+    </div>
+
+    <div id="mainView" style="display:none;">
+        
+        <div id="tab-home" class="tab-content active">
+            <div style="text-align: center; margin-bottom: 25px;">
+                <div id="clock" style="font-size: 2.5rem; font-weight: 900; color: var(--accent); letter-spacing: -1px; text-shadow: 0 4px 15px rgba(14, 165, 233, 0.4);">00:00:00</div>
+            </div>
+            
+            <div class="cam-box">
+                <video id="video" autoplay playsinline></video>
+                <div id="freezeLayer" class="freeze-overlay">🔍 İNCELENİYOR...</div>
+            </div>
+
+            <button id="btnAna" class="btn btn-main" onclick="runAI('yemek')" style="font-size: 1.1rem; padding: 20px;">📸 ANALİZ ET</button>
+            <button id="btnRetry" class="btn btn-sub" style="display:none; background: linear-gradient(135deg, var(--premium), #d97706); color:black; font-size: 1.1rem; padding: 20px;" onclick="resetCamera()">🔄 YENİDEN ANALİZ ET</button>
+
+            <div id="macroDashboard" class="macro-tracker">
+                <div class="macro-item">
+                    <span class="macro-label">PROTEİN</span>
+                    <div class="macro-progress"><div id="barProtein" class="macro-bar" style="width: 0%; background: linear-gradient(90deg, #0284c7, var(--accent));"></div></div>
+                    <span id="valProtein" class="macro-val">0 / 150g</span>
+                </div>
+                <div class="macro-item">
+                    <span class="macro-label">KARB</span>
+                    <div class="macro-progress"><div id="barCarb" class="macro-bar" style="width: 0%; background: linear-gradient(90deg, #d97706, var(--premium));"></div></div>
+                    <span id="valCarb" class="macro-val">0 / 200g</span>
+                </div>
+                <div class="macro-item">
+                    <span class="macro-label">YAĞ</span>
+                    <div class="macro-progress"><div id="barFat" class="macro-bar" style="width: 0%; background: linear-gradient(90deg, #b91c1c, var(--danger));"></div></div>
+                    <span id="valFat" class="macro-val">0 / 70g</span>
+                </div>
+                <div class="macro-item">
+                    <span class="macro-label">KALORİ</span>
+                    <div class="macro-progress"><div id="barCal" class="macro-bar" style="width: 0%; background: linear-gradient(90deg, #059669, var(--primary));"></div></div>
+                    <span id="valCal" class="macro-val">0 / 2000</span>
+                </div>
+            </div>
+
+            <div id="results"></div>
+            <button class="btn btn-main" id="btnPdf" style="display:none; background: linear-gradient(135deg, var(--danger), #b91c1c); margin-top:20px;" onclick="downloadPDF()">📄 PDF KAYDET</button>
+
+            <button id="btnSp" class="btn btn-neutral" style="margin-top:25px;" onclick="document.getElementById('sportQuestionsModal').style.display='block'">🏃‍♂️ SPOR PLANLA</button>
+        </div>
+
+        <div id="tab-messages" class="tab-content">
+            <h3 id="txtLaraTitle" style="color:var(--accent); margin-bottom:15px; font-weight: 900;">🤖 YZ Diyetisyen: LARA</h3>
+            <div id="laraChatDisplay" class="chat-box">
+                <div id="txtLaraGreet" class="msg-lara">Merhaba! Ben Lara. Size diyet, yemek ve spor konularında yardımcı olabilirim. Ne sormak istersiniz?</div>
+            </div>
+            <div style="display:flex; gap:10px;">
+                <input type="text" id="laraInput" placeholder="Mesajınızı yazın..." style="margin-bottom:0; text-align:left;">
+                <button class="btn btn-main" onclick="askLara()" style="width:70px; padding:0; font-size: 1.2rem;">🚀</button>
+            </div>
+
+            <hr style="border: 0; border-top: 1px solid var(--glass-border); margin: 25px 0;">
+
+            <h3 style="color:white; margin-bottom:15px; font-weight: 800;">🔔 Gelen Bildirimler</h3>
+            <div id="notifList"></div>
+
+            <hr style="border: 0; border-top: 1px solid var(--glass-border); margin: 25px 0;">
+
+            <button id="btnFriendToggle" class="btn btn-outline" style="border-color: rgba(255,255,255,0.1); color: var(--text); background: rgba(255,255,255,0.05);" onclick="togglePartner()">👫 DİYET DOSTU ARAMA</button>
+            <div id="partnerPanel" class="partner-box" style="display:none;">
+                <input type="text" id="partnerUser" placeholder="Kullanıcı Adı Girin" style="background: rgba(0,0,0,0.5);">
+                <div class="side-by-side-btns">
+                    <button class="btn btn-main" onclick="sendFriendRequest()">EKLE</button>
+                    <button class="btn btn-sub" style="background: linear-gradient(135deg, var(--primary), var(--primary-hover)); margin-top:0;" onclick="checkPartner()">SORGULA</button>
+                </div>
+                <div id="partnerResult" style="margin-top:20px; font-weight:bold; white-space:pre-line;"></div>
+                <div id="partnerHistoryList" style="margin-top:10px; text-align:left;"></div>
+            </div>
+        </div>
+
+        <div id="tab-profile" class="tab-content">
+            <div style="text-align:center; margin-bottom:20px;">
+                <div id="uMail" class="user-tag" style="font-size: 1.5rem;"></div> 
+                <p style="color:var(--text-muted); font-size:0.85rem; margin-top:5px;">Üye Profil Bilgileri</p>
+            </div>
+
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px; margin-bottom: 15px;">
+                <input type="number" id="uAge" placeholder="YAŞ" onchange="saveUserData()" style="margin-bottom:0;">
+                <input type="number" id="uWeight" placeholder="KİLO" onchange="saveUserData()" style="margin-bottom:0;">
+            </div>
+            <select id="uGoal" onchange="saveUserData()" style="font-weight: 600;">
+                <option value="Kilo Vermek">Kilo Vermek (-)</option>
+                <option value="Kilo Almak">Kilo Almak (+)</option>
+                <option value="Kiloyu Korumak">Kiloyu Korumak (=)</option>
+            </select>
+
+            <div id="dietConnectArea" class="partner-box" style="border-color: rgba(16, 185, 129, 0.3); background: rgba(16,185,129,0.05); margin-top:20px;">
+                <div id="dietSearchMode">
+                    <h3 id="txtDietConn" style="color:var(--primary); font-size:1.05rem; font-weight: 800; margin-bottom: 15px;">Diyetisyene Bağlan</h3>
+                    <input type="text" id="dietCodeInput" placeholder="Diyetisyen Kodunu Gir" maxlength="8" style="background: rgba(0,0,0,0.5); font-weight: bold; letter-spacing: 1px;">
+                    <button id="btnDietConnSub" class="btn btn-sub" style="background: linear-gradient(135deg, var(--primary), var(--primary-hover)); margin-top:0;" onclick="connectToDietician()">KODLA BAĞLAN</button>
+                </div>
+                <div id="dietInfoMode" style="display:none; padding:10px;">
+                    <p id="dietStatus" style="font-weight:900; color:var(--primary); font-size:1rem;"></p>
+                    <button class="btn" style="background: linear-gradient(135deg, var(--danger), #b91c1c); padding:12px; font-size:0.8rem; margin-top:15px; width:auto;" onclick="disconnectDietician()">DİYETİSYENDEN AYRIL</button>
+                </div>
+            </div>
+
+            <h3 style="margin-top:30px; margin-bottom:15px; border-bottom:1px solid var(--glass-border); padding-bottom:10px; font-weight: 800;">📅 Son 7 Günlük Özet</h3>
+            <div id="profileHistoryList" style="max-height: 300px; overflow-y: auto; padding-right: 5px; scrollbar-width: thin;"></div>
+
+            <button id="btnHistToggle" class="btn btn-outline" onclick="toggleHistory()" style="margin-top:15px; display:none;">TÜM GEÇMİŞ</button>
+            <div id="historyPanel" style="display:none; margin-top:15px;">
+                <div id="historyList" style="max-height: 300px; overflow-y: auto; padding-right: 5px; scrollbar-width: thin;"></div>
+            </div>
+
+            <button id="btnOut" class="btn btn-outline" style="margin-top: 35px; border-color:var(--danger); color:var(--danger);" onclick="auth.signOut(); location.reload();">GÜVENLİ ÇIKIŞ</button>
+        </div>
+
+    </div>
+</div>
+
+<nav class="bottom-nav" id="bottomNav">
+    <div class="nav-item active" onclick="switchTab('tab-home')">
+        <span class="nav-icon">🏠</span>
+        <span>ANA SAYFA</span>
+    </div>
+    <div class="nav-item" onclick="switchTab('tab-messages')">
+        <span class="nav-icon">💬</span>
+        <span>MESAJLAR</span>
+    </div>
+    <div class="nav-item" onclick="switchTab('tab-profile')">
+        <span class="nav-icon">👤</span>
+        <span>PROFİL</span>
+    </div>
+</nav>
+
+<script>
+    // --- FİREBASE YAPILANDIRMASI (Sabit Bırakıldı) ---
+    const firebaseConfig = { 
+        apiKey: "AIzaSyDaZ3eZsoAKW3ZazFPebAd-b147KaW5wOA", 
+        authDomain: "voice2post-9e8ca.firebaseapp.com", 
+        projectId: "voice2post-9e8ca", 
+        storageBucket: "voice2post-9e8ca.firebasestorage.app", 
+        messagingSenderId: "511446656614", 
+        appId: "1:511446656614:web:32101ee70299543c716fa7" 
+    };
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth(); 
+    const db = firebase.firestore();
+
+    // --- DEĞİŞKENLER & SABİTLER ---
+    let currentLang = 'tr';
+    let userRole = 'user';
+    let dailyTotals = { protein: 0, carb: 0, fat: 0, cal: 0 };
+    const dailyLimits = { protein: 150, carb: 200, fat: 70, cal: 2000 };
+    let generatedCode = null;
+    let pendingReg = null;
+    
+    // GÜNCELLENDİ: Geri butonu için güncel hastayı aklında tutacak değişken
+    let currentPatientForBack = null;
+
+    const langData = {
+        tr: {
+            headers: ["YEMEK ADI 🍽️","BESİN DEĞERLERİ 📊","NET TAVSİYE 💡","ÜRÜN ÖZETİ 🔍","SKOR 🎯"],
+            notif: "Bildirimler", followers: "Takip Ettiklerin", hist: "GEÇMİŞ ANALİZLERİM", detail: "Detay Gör 🔍",
+            ana: "📸 ANALİZ ET", retry: "🔄 YENİDEN ANALİZ ET", out: "GÜVENLİ ÇIKIŞ", friend: "👫 DİYET DOSTU", lara: "🤖 LARA", spor: "🏃‍♂️ SPOR",
+            seri: "Seri", loading: "🔍 İNCELENİYOR...", h1: "CaloXmeal", login: "GİRİŞ YAP", reg: "Kayıt Ol", regTitle: "KAYIT OL"
+        },
+        en: {
+            headers: ["MEAL NAME 🍽️","NUTRITION 📊","ADVICE 💡","SUMMARY 🔍","SCORE 🎯"],
+            notif: "Notifications", followers: "Following", hist: "ANALYSIS HISTORY", detail: "View Detail 🔍",
+            ana: "📸 ANALYZE", retry: "🔄 RE-ANALYZE", out: "LOGOUT", friend: "👫 DIET PARTNER", lara: "🤖 LARA", spor: "🏃‍♂️ SPORT",
+            seri: "Streak", loading: "🔍 ANALYZING...", spLoading: "CREATING PLAN...", h1: "CaloXmeal", login: "LOGIN", reg: "Sign Up", regTitle: "SIGN UP"
+        }
+    };
+
+    // --- SEKME GEÇİŞ FONKSİYONU ---
+    function switchTab(tabId) {
+        document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+        
+        document.getElementById(tabId).classList.add('active');
+        document.querySelector(`.nav-item[onclick="switchTab('${tabId}')"]`).classList.add('active');
+        
+        if(tabId === 'tab-home') startCamera();
+        if(tabId === 'tab-profile') loadProfileHistory7Days();
+    }
+
+    // --- 7 GÜNLÜK PROFİL GEÇMİŞİ FONKSİYONU ---
+    function loadProfileHistory7Days() {
+        let arr = JSON.parse(localStorage.getItem('history_' + auth.currentUser.uid) || '[]');
+        const now = Date.now(); 
+        const sevenDaysInMillis = 7 * 24 * 60 * 60 * 1000;
+        const last7Days = arr.filter(h => (now - h.unix) < sevenDaysInMillis);
+        
+        const listDiv = document.getElementById('profileHistoryList');
+        if (last7Days.length === 0) {
+            listDiv.innerHTML = '<p style="text-align:center; color:var(--text-muted); font-size:0.9rem;">Son 7 güne ait veri bulunamadı.</p>';
+        } else {
+            listDiv.innerHTML = last7Days.map(h => `
+                <div class="history-box" onclick="openDetail(\`${h.detail.replace(/`/g, "'")}\`)">
+                    <div class="history-meta">🕒 ${h.date} | ⭐ Puan: ${h.summary}/10</div>
+                    <div class="history-meal">🍽️ ${h.meal}</div>
+                </div>`).join('');
+        }
+    }
+
+    // --- UI GÜNCELLEMELERİ VE MAKRO HESAPLARI ---
+    function updateMacroUI() {
+        const p = (dailyTotals.protein / dailyLimits.protein) * 100;
+        const c = (dailyTotals.carb / dailyLimits.carb) * 100;
+        const f = (dailyTotals.fat / dailyLimits.fat) * 100;
+        const cal = (dailyTotals.cal / dailyLimits.cal) * 100;
+
+        document.getElementById('barProtein').style.width = Math.min(p, 100) + '%';
+        document.getElementById('barCarb').style.width = Math.min(c, 100) + '%';
+        document.getElementById('barFat').style.width = Math.min(f, 100) + '%';
+        document.getElementById('barCal').style.width = Math.min(cal, 100) + '%';
+
+        document.getElementById('valProtein').innerText = `${Math.round(dailyTotals.protein)} / ${dailyLimits.protein}g`;
+        document.getElementById('valCarb').innerText = `${Math.round(dailyTotals.carb)} / ${dailyLimits.carb}g`;
+        document.getElementById('valFat').innerText = `${Math.round(dailyTotals.fat)} / ${dailyLimits.fat}g`;
+        document.getElementById('valCal').innerText = `${Math.round(dailyTotals.cal)} / ${dailyLimits.cal}`;
+    }
+
+    function calculateDailyMacros() {
+        let arr = JSON.parse(localStorage.getItem('history_' + auth.currentUser.uid) || '[]');
+        const today = new Date().toLocaleDateString();
+        dailyTotals = { protein: 0, carb: 0, fat: 0, cal: 0 };
+        arr.forEach(h => {
+            if(new Date(h.unix).toLocaleDateString() === today) {
+                const p = h.detail.match(/Protein:\s*(\d+)/i);
+                const c = h.detail.match(/Karbonhidrat:\s*(\d+)/i);
+                const f = h.detail.match(/Yağ:\s*(\d+)/i);
+                const cal = h.detail.match(/Kalori:\s*(\d+)/i);
+                if(p) dailyTotals.protein += parseInt(p[1]);
+                if(c) dailyTotals.carb += parseInt(c[1]);
+                if(f) dailyTotals.fat += parseInt(f[1]);
+                if(cal) dailyTotals.cal += parseInt(cal[1]);
+            }
+        });
+        updateMacroUI();
+    }
+
+    function changeLang(l) {
+        currentLang = l; 
+        const d = langData[l];
+        document.getElementById('txtNotHead').innerText = d.notif;
+        document.getElementById('txtFriendsHead').innerText = d.followers;
+        document.getElementById('btnHistToggle').innerText = d.hist;
+        document.getElementById('btnAna').innerText = d.ana;
+        if(document.getElementById('btnRetry')) document.getElementById('btnRetry').innerText = d.retry;
+        document.getElementById('txtSeri').innerText = d.seri;
+        document.getElementById('txtAppName').innerText = d.h1;
+    }
+
+    // --- AUTH İŞLEMLERİ ---
+    auth.onAuthStateChanged(user => {
+        if (user) {
+            db.collection('partner_data').doc(user.displayName.toLowerCase()).get().then(doc => {
+                const data = doc.data() || {};
+                if(data.role === 'dietician') {
+                    toggleView('dieticianView'); 
+                    document.getElementById('dMail').innerText = "@" + user.displayName; 
+                    handleDieticianPortal(user.displayName.toLowerCase());
+                } else {
+                    toggleView('mainView'); 
+                    document.getElementById('topHeader').style.display = 'flex';
+                    document.getElementById('bottomNav').style.display = 'flex';
+                    switchTab('tab-home'); 
+                    document.getElementById('uMail').innerText = "@" + user.displayName;
+                    setupUser(user); 
+                    startCamera(); 
+                    listenNotifications(); 
+                    listenFriends(); 
+                    showStreak(); 
+                    checkDieticianLink(); 
+                    calculateDailyMacros();
+                }
+            });
+        } else { 
+            document.getElementById('topHeader').style.display = 'none';
+            document.getElementById('bottomNav').style.display = 'none';
+            toggleView('loginView'); 
+        }
+    });
+
+    function setupUser(user) {
+        const saved = JSON.parse(localStorage.getItem('userData_' + user.uid) || '{}');
+        if(saved.age) document.getElementById('uAge').value = saved.age;
+        if(saved.weight) document.getElementById('uWeight').value = saved.weight;
+        if(saved.goal) document.getElementById('uGoal').value = saved.goal;
+        document.getElementById('bellIcon').style.display = 'flex';
+        document.getElementById('friendListBtn').style.display = 'flex';
+    }
+
+    function saveUserData() {
+        if(!auth.currentUser) return;
+        const d = { 
+            age: document.getElementById('uAge').value, 
+            weight: document.getElementById('uWeight').value, 
+            goal: document.getElementById('uGoal').value 
+        };
+        localStorage.setItem('userData_' + auth.currentUser.uid, JSON.stringify(d));
+        db.collection('partner_data').doc(auth.currentUser.displayName.toLowerCase()).set(d, {merge:true});
+    }
+
+    // --- KAMERA VE ANALİZ İŞLEMLERİ (GÜNCELLENDİ: Kesin Kural Eklendi) ---
+    function startCamera() {
+        const vid = document.getElementById('video');
+        if(!vid) return;
+        navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
+            .then(s => { vid.srcObject = s; vid.play(); })
+            .catch(e => { console.log("Kamera Hatası: " + e.message); });
+    }
+
+    async function runAI(mode) {
+        const resDiv = document.getElementById('results'); 
+        const vid = document.getElementById('video');
+        
+        vid.pause(); 
+        document.getElementById('freezeLayer').style.display = 'flex';
+        document.getElementById('btnAna').style.display = 'none';
+        
+        const canv = document.createElement('canvas'); 
+        canv.width = 640; 
+        canv.height = 480;
+        canv.getContext('2d').drawImage(vid, 0, 0, 640, 480);
+        let img = canv.toDataURL('image/jpeg', 0.7);
+
+        try {
+            // GÜNCELLENDİ: Yapay zeka uyarısı bypass edildi, makro verilerinin doğru formata oturması için sıkılaştırıldı.
+            const promptText = `Hedef:${document.getElementById('uGoal').value} | KESİN KURAL: Görüntüdeki insanları veya nesneleri tamamen yoksay, asla "insanları tanımlayamam" yazma. Hiçbir önsöz olmadan doğrudan "1. YEMEK ADI:" diyerek başla. 2. Bölümde makro değerleri TAM OLARAK şu şekilde yaz: Protein: X, Karbonhidrat: X, Yağ: X, Kalori: X`;
+            
+            const r = await fetch('/api/analyze', {
+                method: 'POST', 
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ 
+                    mode, 
+                    image: img, 
+                    user_data: promptText, 
+                    lang: currentLang 
+                })
+            });
+            const d = await r.json();
+            
+            resDiv.innerHTML = ''; 
+            resDiv.style.display = 'flex';
+            const sections = d.analysis.split(/\d\./).filter(s => s.trim().length > 2);
+            const headers = langData[currentLang].headers;
+            let finalScore = 5; 
+            let mealName = "Yemek";
+
+            sections.forEach((txt, i) => {
+                const card = document.createElement('div'); 
+                card.className = 'report-card';
+                let content = txt.trim(); 
+                if (i === 0) mealName = content.substring(0,30);
+                
+                if (content.includes('[SKOR:')) {
+                    const match = content.match(/\[SKOR:\s*(\d+)\]/);
+                    if(match) {
+                        finalScore = parseInt(match[1]); 
+                        let left = (finalScore/10)*100;
+                        card.innerHTML = `
+                            <div class="report-tag">${headers[i]}</div>
+                            <div class="report-txt">${content.replace(match[0], '')}</div>
+                            <div class="score-container">
+                                <div class="score-bar-bg">
+                                    <div class="score-pointer" style="left:${left}%"></div>
+                                </div>
+                                <div style="text-align:center; margin-top:15px; font-weight:900; color:var(--primary); font-size: 1.2rem;">${finalScore}/10</div>
+                            </div>`;
+                    }
+                } else { 
+                    card.innerHTML = `<div class="report-tag">${headers[i] || 'DETAY'}</div><div class="report-txt">${content}</div>`; 
+                }
+                resDiv.appendChild(card);
+            });
+            
+            document.getElementById('btnRetry').style.display = 'block'; 
+            document.getElementById('freezeLayer').style.display = 'none';
+            document.getElementById('btnPdf').style.display = 'block';
+            
+            saveHistory(finalScore, d.analysis, mealName);
+            calculateDailyMacros(); 
+            resDiv.scrollIntoView({ behavior: 'smooth' });
+            
+        } catch(e) { 
+            alert("Analiz Hatası. Lütfen tekrar deneyiniz."); 
+            resetCamera(); 
+        }
+    }
+
+    // --- GEÇMİŞ VE VERİTABANI İŞLEMLER ---
+    function saveHistory(s, r, m) {
+        const me = auth.currentUser.displayName.toLowerCase(); 
+        const dateStr = new Date().toLocaleString(); 
+        const unix = Date.now();
+        
+        db.collection('partner_data').doc(me).set({ score: s, lastMealName: m }, { merge: true });
+        db.collection('partner_data').doc(me).collection('history').add({ score: s, fullText: r, date: dateStr, unix: unix, mealName: m });
+        
+        let arr = JSON.parse(localStorage.getItem('history_' + auth.currentUser.uid) || '[]');
+        arr.unshift({ summary: s, date: dateStr, detail: r, meal: m, unix: unix });
+        localStorage.setItem('history_' + auth.currentUser.uid, JSON.stringify(arr.slice(0, 50)));
+    }
+
+    function toggleHistory() {
+        const p = document.getElementById('historyPanel'); 
+        p.style.display = p.style.display === 'none' ? 'block' : 'none';
+        
+        if(p.style.display === 'block') {
+            let arr = JSON.parse(localStorage.getItem('history_' + auth.currentUser.uid) || '[]');
+            const now = Date.now(); 
+            const last24 = arr.filter(h => (now - h.unix) < 86400000); 
+            
+            document.getElementById('historyList').innerHTML = last24.map(h => `
+                <div class="history-box" onclick="openDetail(\`${h.detail.replace(/`/g, "'")}\`)">
+                    <div class="history-meta">🕒 ${h.date} | ⭐ Puan: ${h.summary}/10</div>
+                    <div class="history-meal">🍽️ ${h.meal}</div>
+                </div>`).join('');
+        }
+    }
+
+    function checkPartner() {
+        const u = document.getElementById('partnerUser').value.trim().toLowerCase();
+        db.collection('partner_data').doc(u).collection('history').orderBy('unix', 'desc').limit(1).get().then(snap => {
+            const res = document.getElementById('partnerResult');
+            if(!snap.empty) {
+                const d = snap.docs[0].data();
+                res.innerHTML = `
+                <div class="history-box" style="margin-top:0;" onclick="openDetail(\`${d.fullText.replace(/`/g, "'")}\`)">
+                    <div class="history-meta">🕒 ${d.date} | ⭐ Puan: ${d.score}/10</div>
+                    <div class="history-meal">🍽️ ${d.mealName}</div>
+                    <div style="font-size:0.7rem; color:var(--accent); text-align:right; margin-top:5px;">${langData[currentLang].detail}</div>
+                </div>`;
+            } else { 
+                res.innerText = "Veri bulunamadı."; 
+            }
+        });
+    }
+
+    // --- BİLDİRİM VE SOSYAL İŞLEMLER ---
+    function listenNotifications() {
+        db.collection('notifications').where('toUser', '==', auth.currentUser.displayName.toLowerCase()).onSnapshot(snap => {
+            const list = document.getElementById('notifList'); 
+            document.getElementById('notifBadge').innerText = snap.size;
+            document.getElementById('notifBadge').style.display = snap.size > 0 ? 'flex' : 'none'; 
+            list.innerHTML = '';
+            
+            snap.forEach(doc => {
+                const d = doc.data();
+                list.innerHTML += `
+                <div class="notif-item" style="display:flex; justify-content:space-between; align-items:center;">
+                    <span style="flex:1;">${d.message}</span>
+                    <button class="notif-btn-del" style="background:var(--danger); color:white; border:none; padding:6px 10px; border-radius:8px; font-size:0.7rem; font-weight:bold; cursor:pointer;" onclick="deleteNotif('${doc.id}')">SİL</button>
+                </div>`;
+            });
+        });
+    }
+
+    // --- DİYETİSYEN PORTALI İŞLEMLERİ (GÜNCELLENDİ: ÖZEL MESAJ SİSTEMİ EKLENDİ) ---
+    async function handleDieticianPortal(u) {
+        db.collection('dieticians').doc(u).onSnapshot(doc => {
+            if(doc.exists && doc.data().code) {
+                document.getElementById('currentCodeDisplay').innerText = "KOD: " + doc.data().code;
+            }
+            listenPatients(u);
+        });
+    }
+
+    function listenPatients(d) {
+        db.collection('dieticians').doc(d).onSnapshot(doc => {
+            const list = document.getElementById('patientList'); 
+            list.innerHTML = '';
+            if(doc.exists && doc.data().patients) {
+                doc.data().patients.forEach(p => {
+                    const card = document.createElement('div'); 
+                    card.className = 'patient-card';
+                    card.innerHTML = `<div><div style="font-weight:900; font-size:1.1rem; color:var(--primary);">@${p}</div><div id="pLast_${p}" style="font-size:0.8rem; color:var(--text-muted); margin-top:4px;">Yükleniyor...</div></div><span style="font-size:1.5rem; color:var(--accent);">➔</span>`;
+                    card.onclick = () => showPatientHistory(p); 
+                    list.appendChild(card);
+                    
+                    db.collection('partner_data').doc(p).collection('history').orderBy('unix', 'desc').limit(1).get().then(s => {
+                        if(!s.empty) document.getElementById('pLast_'+p).innerText = "Son: " + s.docs[0].data().mealName;
+                    });
+                });
+            }
+        });
+    }
+
+    function showPatientHistory(p) {
+        currentPatientForBack = p; // Geri dönmek için hastayı kaydet
+        document.getElementById('btnModalBack').style.display = 'none'; // Listede geri butonuna gerek yok
+        
+        db.collection('partner_data').doc(p).collection('history').orderBy('unix', 'desc').limit(10).get().then(snap => {
+            // GÜNCELLENDİ: Özel Mesaj Gönderme Alanı Eklendi
+            let html = `
+                <div style="text-align:center; border-bottom:1px solid var(--glass-border); padding-bottom:15px; margin-bottom:15px;">
+                    <h3 style="color:var(--primary);">@${p} Profili</h3>
+                </div>
+                <div style="background:rgba(14, 165, 233, 0.05); border: 1px solid rgba(14, 165, 233, 0.2); padding:15px; border-radius:15px; margin-bottom:20px;">
+                    <h4 style="font-size:0.85rem; color:var(--accent); margin-bottom:10px;">💬 Direkt Mesaj Gönder</h4>
+                    <input type="text" id="dmInput_${p}" placeholder="Hastaya özel mesaj yaz..." style="margin-bottom:10px; padding:12px; font-size:0.85rem; background:rgba(0,0,0,0.5);">
+                    <button class="btn btn-sub" style="padding:12px; font-size:0.8rem; margin:0;" onclick="sendDirectMessage('${p}')">MESAJI GÖNDER</button>
+                </div>
+                <h4 style="font-size:0.9rem; margin-bottom:10px; color:var(--text-muted);">Son Raporlar</h4>
+            `;
+            
+            if(snap.empty) {
+                html += `<div style="text-align:center; color:white;">Hastanın henüz analiz verisi yok.</div>`;
+            } else {
+                snap.forEach(doc => {
+                    const d = doc.data();
+                    // isFromDietician = true flag'ı gönderiliyor ki Geri Git butonu gözüksün
+                    html += `<div class="history-box" onclick="openDetail(\`${d.fullText.replace(/`/g, "'")}\`, true)">🕒 ${d.date}<br><span style="color:white; font-weight:bold;">🍽️ ${d.mealName}</span> (Puan: ${d.score})</div>`;
+                });
+            }
+            
+            document.getElementById('modalTitle').innerText = "Danışan Detayı";
+            document.getElementById('modalBody').innerHTML = html; 
+            document.getElementById('detailModal').style.display = 'block';
+        });
+    }
+
+    // YENİ EKLENDİ: Direkt Mesaj Fonksiyonu
+    async function sendDirectMessage(patientName) {
+        const inputField = document.getElementById('dmInput_' + patientName);
+        const msg = inputField.value.trim();
+        if(!msg) return alert("Lütfen bir mesaj yazın.");
+        
+        try {
+            await db.collection('notifications').add({ 
+                toUser: patientName, 
+                fromUser: auth.currentUser.displayName.toLowerCase(), 
+                message: "👨‍⚕️ Diyetisyeniniz: " + msg, 
+                timestamp: Date.now() 
+            });
+            inputField.value = '';
+            alert("Mesaj hastaya başarıyla iletildi!");
+        } catch(error) {
+            alert("Mesaj gönderilemedi: " + error.message);
+        }
+    }
+
+    // --- LARA VE SPOR PLANLAMA ---
+    async function askLara() {
+        const inp = document.getElementById('laraInput'); 
+        const disp = document.getElementById('laraChatDisplay'); 
+        const q = inp.value.trim(); 
+        
+        if(!q) return;
+        
+        disp.innerHTML += `<div class="msg-user">${q}</div>`; 
+        inp.value = ''; 
+        disp.scrollTop = disp.scrollHeight;
+        
+        try {
+            const r = await fetch('/api/analyze', { 
+                method: 'POST', 
+                headers: {'Content-Type': 'application/json'}, 
+                body: JSON.stringify({ mode: 'lara', user_data: q, lang: currentLang }) 
+            });
+            const d = await r.json(); 
+            disp.innerHTML += `<div class="msg-lara">${d.analysis}</div>`; 
+            disp.scrollTop = disp.scrollHeight;
+        } catch(e) { 
+            disp.innerHTML += `<div class="msg-lara" style="background:var(--danger);">Hata oluştu. Lütfen bağlantınızı kontrol edin.</div>`; 
+        }
+    }
+
+    async function generateSportProgram() {
+        const info = `Yaş:${document.getElementById('sqAge').value}, Kilo:${document.getElementById('sqWeight').value}, Gün:${document.getElementById('sqDays').value}, Hedef:${document.getElementById('sqGoal').value}`;
+        document.getElementById('sportInputArea').style.display = 'none'; 
+        document.getElementById('sportLoadingArea').style.display = 'block';
+        
+        try {
+            const r = await fetch('/api/analyze', { 
+                method: 'POST', 
+                headers: {'Content-Type': 'application/json'}, 
+                body: JSON.stringify({ mode: 'spor', user_data: info, lang: currentLang }) 
+            });
+            const d = await r.json();
+            document.getElementById('sportLoadingArea').style.display = 'none'; 
+            document.getElementById('sportResultArea').style.display = 'block'; 
+            document.getElementById('sportPlanContent').innerText = d.analysis;
+        } catch(e) { 
+            alert("Hata oluştu. Lütfen tekrar deneyin."); 
+            resetSportModal(); 
+        }
+    }
+
+    // --- DİYETİSYEN BAĞLANTILARI ---
+    async function connectToDietician() {
+        const c = document.getElementById('dietCodeInput').value.trim().toUpperCase();
+        const me = auth.currentUser.displayName.toLowerCase();
+        const q = await db.collection('dieticians').where('code', '==', c).get();
+        
+        if(q.empty) return alert("Hatalı Kod Girdiniz.");
+        
+        const dID = q.docs[0].id;
+        await db.collection('dieticians').doc(dID).update({ patients: firebase.firestore.FieldValue.arrayUnion(me) });
+        await db.collection('partner_data').doc(me).update({ linkedDietician: dID });
+        
+        alert("Diyetisyene başarıyla bağlandınız."); 
+        checkDieticianLink();
+    }
+
+    async function disconnectDietician() {
+        if(!confirm("Diyetisyeninizden ayrılmak istediğinize emin misiniz?")) return;
+        const me = auth.currentUser.displayName.toLowerCase();
+        const doc = await db.collection('partner_data').doc(me).get();
+        const dID = doc.data().linkedDietician;
+        
+        if(dID) {
+            await db.collection('dieticians').doc(dID).update({ patients: firebase.firestore.FieldValue.arrayRemove(me) });
+            await db.collection('partner_data').doc(me).update({ linkedDietician: firebase.firestore.FieldValue.delete() });
+        }
+        alert("Bağlantı başarıyla kesildi."); 
+        checkDieticianLink();
+    }
+
+    function checkDieticianLink() {
+        db.collection('partner_data').doc(auth.currentUser.displayName.toLowerCase()).get().then(doc => {
+            if(doc.exists && doc.data().linkedDietician) {
+                document.getElementById('dietStatus').innerText = "Diyetisyenim: @" + doc.data().linkedDietician;
+                document.getElementById('dietSearchMode').style.display = 'none';
+                document.getElementById('dietInfoMode').style.display = 'block';
+            } else {
+                document.getElementById('dietSearchMode').style.display = 'block';
+                document.getElementById('dietInfoMode').style.display = 'none';
+            }
+        });
+    }
+
+    // --- YARDIMCI KÜÇÜK FONKSİYONLAR ---
+    function checkSpecific(u) { 
+        document.getElementById('partnerUser').value = u; 
+        checkPartner(); 
+        toggleFriends(); 
+        document.getElementById('partnerPanel').style.display = 'block'; 
+        document.getElementById('partnerPanel').scrollIntoView({ behavior: 'smooth' }); 
+    }
+    
+    function deleteNotif(id) { 
+        db.collection('notifications').doc(id).delete(); 
+    }
+    
+    // GÜNCELLENDİ: isFromDietician parametresi eklenerek Geri Git butonu yönetimi sağlandı.
+    function openDetail(txt, isFromDietician = false) { 
+        document.getElementById('modalTitle').innerText = "Öğün Detayı"; 
+        document.getElementById('modalBody').innerHTML = `<div style="white-space:pre-line;">${txt}</div>`; 
+        
+        if(isFromDietician) {
+            document.getElementById('btnModalBack').style.display = 'block';
+        } else {
+            document.getElementById('btnModalBack').style.display = 'none';
+        }
+        
+        document.getElementById('detailModal').style.display = 'block'; 
+    }
+    
+    // YENİ EKLENDİ: Hastanın profiline geri dönüş
+    function goBackToPatientHistory() {
+        if(currentPatientForBack) {
+            showPatientHistory(currentPatientForBack);
+        }
+    }
+    
+    function resetCamera() { 
+        document.getElementById('video').play(); 
+        document.getElementById('freezeLayer').style.display = 'none'; 
+        document.getElementById('results').style.display = 'none'; 
+        document.getElementById('btnAna').style.display = 'flex'; 
+        document.getElementById('btnRetry').style.display = 'none'; 
+        document.getElementById('btnPdf').style.display = 'none';
+    }
+    
+    function toggleView(id) { 
+        document.querySelectorAll('.auth-container, #mainView, #dieticianView').forEach(v => v.style.display = 'none'); 
+        document.getElementById(id).style.display = 'block'; 
+    }
+    
+    async function doLogin() { 
+        try { 
+            await auth.signInWithEmailAndPassword(document.getElementById('lEmail').value, document.getElementById('lPass').value); 
+        } catch(e) { 
+            alert("Giriş Hatası: Lütfen bilgilerinizi kontrol edin."); 
+        } 
+    }
+    
+    async function doReset() { 
+        const email = document.getElementById('lEmail').value; 
+        if(!email) return alert("Lütfen e-posta adresinizi yazın."); 
+        auth.sendPasswordResetEmail(email).then(() => alert("Şifre sıfırlama e-postası gönderildi.")).catch(e => alert("Hata: " + e.message)); 
+    }
+    
+    // --- KAYIT MANTIĞI ---
+    async function doRegister() { 
+        const email = document.getElementById('rEmail').value.trim();
+        const pass = document.getElementById('rPass').value;
+        const u = document.getElementById('rUser').value.trim();
+        
+        if(!email || !pass || !u) return alert("Lütfen tüm alanları doldurun.");
+        
+        generatedCode = Math.floor(100000 + Math.random() * 900000).toString();
+        pendingReg = { email, pass, u, role: userRole };
+        
+        document.getElementById('regFields').style.display = 'none';
+        document.getElementById('verifyFields').style.display = 'block';
+        
+        alert("TEST BİLGİSİ (Maile gidecek kod): " + generatedCode);
+    }
+    
+    async function verifyAndRegister() {
+        const code = document.getElementById('vCode').value.trim();
+        if(code !== generatedCode) return alert("Hatalı kod girdiniz.");
+        
+        try {
+            const cred = await auth.createUserWithEmailAndPassword(pendingReg.email, pendingReg.pass);
+            await cred.user.updateProfile({ displayName: pendingReg.u });
+            await db.collection('partner_data').doc(pendingReg.u.toLowerCase()).set({ username: pendingReg.u.toLowerCase(), role: pendingReg.role }, { merge: true });
+            
+            alert("Hesabınız başarıyla oluşturuldu! Sisteme yönlendiriliyorsunuz...");
+            location.reload();
+        } catch(e) {
+            alert("Kayıt Hatası: " + e.message);
+            cancelVerify();
+        }
+    }
+    
+    function cancelVerify() {
+        document.getElementById('verifyFields').style.display = 'none';
+        document.getElementById('regFields').style.display = 'block';
+        generatedCode = null;
+        pendingReg = null;
+        document.getElementById('vCode').value = '';
+    }
+
+    function toggleNotifications() { 
+        const d = document.getElementById('notifDropdown'); 
+        d.style.display = d.style.display === 'none' ? 'block' : 'none'; 
+    }
+    
+    function toggleFriends() { 
+        const d = document.getElementById('friendsDropdown'); 
+        d.style.display = d.style.display === 'none' ? 'block' : 'none'; 
+    }
+    
+    function togglePartner() { 
+        const p = document.getElementById('partnerPanel'); 
+        p.style.display = p.style.display === 'none' ? 'block' : 'none'; 
+    }
+    
+    function listenFriends() { 
+        db.collection('partner_data').doc(auth.currentUser.displayName.toLowerCase()).onSnapshot(doc => { 
+            if(doc.exists && doc.data().friends) { 
+                document.getElementById('friendsListContainer').innerHTML = doc.data().friends.map(f => `<div class="friend-pill" onclick="checkSpecific('${f}')">@${f}</div>`).join(''); 
+            } 
+        }); 
+    }
+    
+    async function saveDieticianCode() { 
+        const u = auth.currentUser.displayName.toLowerCase(); 
+        const c = document.getElementById('myDietCodeInput').value.trim().toUpperCase(); 
+        await db.collection('dieticians').doc(u).set({ code: c }, { merge: true }); 
+        alert("Kod başarıyla kaydedildi."); 
+    }
+    
+    async function sendBroadcast() { 
+        const d = auth.currentUser.displayName.toLowerCase(); 
+        const m = document.getElementById('broadcastMsg').value.trim(); 
+        const doc = await db.collection('dieticians').doc(d).get(); 
+        doc.data().patients.forEach(p => { 
+            db.collection('notifications').add({ toUser: p, fromUser: d, message: "👨‍⚕️ Ödev: " + m, timestamp: Date.now() }); 
+        }); 
+        document.getElementById('broadcastMsg').value = ''; 
+        alert("Duyuru tüm hastalara gönderildi."); 
+    }
+    
+    function setRole(r, b) { 
+        userRole = r; 
+        document.querySelectorAll('.role-btn').forEach(btn => btn.classList.remove('active')); 
+        b.classList.add('active'); 
+    }
+    
+    function resetSportModal() { 
+        document.getElementById('sportInputArea').style.display = 'block'; 
+        document.getElementById('sportLoadingArea').style.display = 'none'; 
+        document.getElementById('sportResultArea').style.display = 'none'; 
+    }
+    
+    function downloadSportPDF() { 
+        html2pdf().from(document.getElementById('sportPlanContent')).save('CaloXmeal_Spor_Programi.pdf'); 
+    }
+    
+    function downloadPDF() { 
+        html2pdf().from(document.getElementById('results')).save('CaloXmeal_Analiz_Raporu.pdf'); 
+    }
+    
+    function sendFriendRequest() { 
+        const u = document.getElementById('partnerUser').value.trim().toLowerCase(); 
+        db.collection('notifications').add({ toUser: u, fromUser: auth.currentUser.displayName.toLowerCase(), message: "@"+auth.currentUser.displayName+" takip isteği attı.", timestamp: Date.now() }); 
+        alert("Takip isteği gönderildi."); 
+    }
+    
+    function showStreak() { 
+        let d = JSON.parse(localStorage.getItem('streak_' + auth.currentUser.uid) || '{"count":0}'); 
+        if(d.count > 0) { 
+            document.getElementById('streakBadge').style.display = 'block'; 
+            document.getElementById('streakCount').innerText = d.count; 
+        } 
+    }
+    
+    setInterval(() => { 
+        if(document.getElementById('clo
