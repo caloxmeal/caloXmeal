@@ -1,6 +1,15 @@
 // api/analyze.js
-// Bio-Chef Pro — AI Analysis Endpoint (GPT-4o Integrated)
+// CaloXmeal — AI Analysis Endpoint (GPT-4o Integrated)
 // ─────────────────────────────────────────────────────────
+
+// Ön yüzden gelen Base64 resimlerin boyut sınırına takılmasını önlemek için limit artırıldı.
+export const config = {
+    api: {
+        bodyParser: {
+            sizeLimit: '4mb', 
+        },
+    },
+};
 
 const ALLOWED_MODES = ['yemek', 'spor', 'lara'];
 
@@ -12,12 +21,12 @@ const buildPrompt = (mode, user_data, lang) => {
     if (mode === 'spor') {
         return {
             system: `Sen profesyonel bir fitness koçusun. 
-            Kullanıcı profili: ${user_data}. 
+            Kullanıcı profili ve istekleri: ${user_data}. 
             KURALLAR:
             - Kullanıcı haftada kaç gün seçtiyse (örn: 4 gün) SADECE o kadar gün için program yaz.
             - Her gün için hareket, set ve tekrar ver.
             - Programın en sonuna "BU HAFTA TAHMİNİ YAKILACAK KALORİ: XXX kcal" şeklinde bir hesaplama ekle.
-            - Format çok düzenli ve estetik olsun.
+            - Format çok düzenli, estetik ve motive edici olsun.
             ${langRule}`,
             user: "Bana özel spor programımı hazırla.",
         };
@@ -25,28 +34,29 @@ const buildPrompt = (mode, user_data, lang) => {
 
     if (mode === 'lara') {
         return {
-            system: `Senin adın Lara. Bir yapay zeka diyetisyenisin.
+            system: `Senin adın Lara. CaloXmeal uygulamasının yapay zeka diyetisyenisin.
             KURALLAR:
-            - Cevapların can alıcı, çok kısa ve net olsun. Gereksiz uzun cümlelerden kaçın.
-            - Sadece diyet, spor, besin değerleri ve yemek tarifleri hakkında konuş.
+            - Cevapların can alıcı, çok kısa, arkadaş canlısı ve net olsun. Gereksiz uzun cümlelerden kaçın.
+            - Sadece diyet, spor, besin değerleri ve sağlıklı yaşam hakkında konuş.
             - Bu konular dışındaki sorulara nazikçe reddederek sadece uzmanlık alanında cevap verebileceğini söyle.
             ${langRule}`,
             user: user_data,
         };
     }
 
-    // GÜNCELLENMİŞ YEMEK ANALİZ MODU
+    // YEMEK ANALİZ MODU
     return {
         system: `Sen kıdemli bir gıda bilimcisi ve klinik diyetisyensin.
-        Kullanıcı profili: ${user_data}.
+        Kullanıcının Özel Talimatları: ${user_data}
 
         KURALLAR:
-        - Görüntüdeki insanları tamamen yoksay. Sadece gıdaya odaklan.
-        - Aşağıdaki 5 bölümü SIRA İLE, eksiksiz yaz. Başka format kullanma.
+        - Görüntüdeki insanları veya nesneleri tamamen yoksay. Sadece gıdaya odaklan.
+        - Hiçbir önsöz veya giriş cümlesi kullanma. Doğrudan "1. YEMEK ADI:" diyerek başla.
+        - Aşağıdaki 5 bölümü SIRA İLE, rakamlarla numaralandırarak eksiksiz yaz. Başka format kullanma.
 
-        FORMAT (Sıralama kritiktir, her bölüm numara ile başlasın):
+        FORMAT (Sıralama ve numaralandırma kritiktir):
         1. YEMEK ADI: Gıdanın tam adı.
-        2. BESİN DEĞERLERİ: Tahmini Porsiyon Gramajı + Kalori (kcal) · Protein (g) · Karbonhidrat (g) · Yağ (g).
+        2. BESİN DEĞERLERİ: Kullanıcının talimatında belirttiği gibi TAM OLARAK şu formatta yaz: Protein: X, Karbonhidrat: X, Yağ: X, Kalori: X (X yerine sadece tahmini sayıları yaz, "g" veya "kcal" ekleme).
         3. NET TAVSİYE: Tüketim onayı/reddi ve kullanıcı hedefine göre can alıcı tavsiye (1-2 cümle).
         4. ÜRÜN ÖZETİ: İçerik ve hazırlanış tarzı hakkında kısa, profesyonel bir özet.
         5. HEDEF UYUM SKORU: Sadece "[SKOR: X]" yaz (X = 1-10 arası tam sayı).
@@ -56,8 +66,8 @@ const buildPrompt = (mode, user_data, lang) => {
             {
                 type: 'text',
                 text: lang === 'en' 
-                    ? 'Analyze the food in the image. Follow the 5-section sequence exactly.' 
-                    : 'Görüntüdeki gıdayı analiz et. 5 bölümlük yeni sıralamayı eksiksiz uygula.',
+                    ? 'Analyze the food in the image strictly following the 5-section format.' 
+                    : 'Görüntüdeki gıdayı analiz et. 5 bölümlük formata kesinlikle uy.',
             },
             {
                 type: 'image_url',
@@ -78,7 +88,7 @@ export default async function handler(req, res) {
     try {
         const prompt = buildPrompt(mode, user_data, lang);
         
-        // Görseli prompt içine yerleştirme
+        // Görseli prompt içine yerleştirme (Sadece yemek modunda var)
         const userContent = mode === 'yemek' 
             ? prompt.user.map(b => 
                 b.type === 'image_url' 
@@ -105,7 +115,9 @@ export default async function handler(req, res) {
         });
 
         if (!openaiRes.ok) {
-            return res.status(502).json({ error: 'Yapay zeka servisi yanıt vermedi.' });
+            const errData = await openaiRes.json();
+            console.error('[OpenAI API Hatası]:', errData);
+            return res.status(502).json({ error: 'Yapay zeka servisi yanıt vermedi veya isteği reddetti.' });
         }
 
         const data = await openaiRes.json();
@@ -118,7 +130,7 @@ export default async function handler(req, res) {
         return res.status(200).json({ analysis });
 
     } catch (err) {
-        console.error('[BioChef] Sistem hatası:', err);
+        console.error('[CaloXmeal] Sistem hatası:', err);
         return res.status(500).json({ error: 'Sistem hatası.' });
     }
 }
