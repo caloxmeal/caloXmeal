@@ -560,7 +560,7 @@
     let generatedCode = null;
     let pendingReg = null;
     
-    // GÜNCELLENDİ: Geri butonu için güncel hastayı aklında tutacak değişken
+    // Geri butonu için güncel hastayı aklında tutacak değişken
     let currentPatientForBack = null;
 
     const langData = {
@@ -709,7 +709,7 @@
         db.collection('partner_data').doc(auth.currentUser.displayName.toLowerCase()).set(d, {merge:true});
     }
 
-    // --- KAMERA VE ANALİZ İŞLEMLERİ (GÜNCELLENDİ: Kesin Kural Eklendi) ---
+    // --- KAMERA VE ANALİZ İŞLEMLERİ ---
     function startCamera() {
         const vid = document.getElementById('video');
         if(!vid) return;
@@ -733,7 +733,6 @@
         let img = canv.toDataURL('image/jpeg', 0.7);
 
         try {
-            // GÜNCELLENDİ: Yapay zeka uyarısı bypass edildi, makro verilerinin doğru formata oturması için sıkılaştırıldı.
             const promptText = `Hedef:${document.getElementById('uGoal').value} | KESİN KURAL: Görüntüdeki insanları veya nesneleri tamamen yoksay, asla "insanları tanımlayamam" yazma. Hiçbir önsöz olmadan doğrudan "1. YEMEK ADI:" diyerek başla. 2. Bölümde makro değerleri TAM OLARAK şu şekilde yaz: Protein: X, Karbonhidrat: X, Yağ: X, Kalori: X`;
             
             const r = await fetch('/api/analyze', {
@@ -864,7 +863,7 @@
         });
     }
 
-    // --- DİYETİSYEN PORTALI İŞLEMLERİ (GÜNCELLENDİ: ÖZEL MESAJ SİSTEMİ EKLENDİ) ---
+    // --- DİYETİSYEN PORTALI İŞLEMLERİ ---
     async function handleDieticianPortal(u) {
         db.collection('dieticians').doc(u).onSnapshot(doc => {
             if(doc.exists && doc.data().code) {
@@ -895,11 +894,10 @@
     }
 
     function showPatientHistory(p) {
-        currentPatientForBack = p; // Geri dönmek için hastayı kaydet
-        document.getElementById('btnModalBack').style.display = 'none'; // Listede geri butonuna gerek yok
+        currentPatientForBack = p;
+        document.getElementById('btnModalBack').style.display = 'none';
         
         db.collection('partner_data').doc(p).collection('history').orderBy('unix', 'desc').limit(10).get().then(snap => {
-            // GÜNCELLENDİ: Özel Mesaj Gönderme Alanı Eklendi
             let html = `
                 <div style="text-align:center; border-bottom:1px solid var(--glass-border); padding-bottom:15px; margin-bottom:15px;">
                     <h3 style="color:var(--primary);">@${p} Profili</h3>
@@ -917,7 +915,6 @@
             } else {
                 snap.forEach(doc => {
                     const d = doc.data();
-                    // isFromDietician = true flag'ı gönderiliyor ki Geri Git butonu gözüksün
                     html += `<div class="history-box" onclick="openDetail(\`${d.fullText.replace(/`/g, "'")}\`, true)">🕒 ${d.date}<br><span style="color:white; font-weight:bold;">🍽️ ${d.mealName}</span> (Puan: ${d.score})</div>`;
                 });
             }
@@ -928,7 +925,6 @@
         });
     }
 
-    // YENİ EKLENDİ: Direkt Mesaj Fonksiyonu
     async function sendDirectMessage(patientName) {
         const inputField = document.getElementById('dmInput_' + patientName);
         const msg = inputField.value.trim();
@@ -1051,7 +1047,6 @@
         db.collection('notifications').doc(id).delete(); 
     }
     
-    // GÜNCELLENDİ: isFromDietician parametresi eklenerek Geri Git butonu yönetimi sağlandı.
     function openDetail(txt, isFromDietician = false) { 
         document.getElementById('modalTitle').innerText = "Öğün Detayı"; 
         document.getElementById('modalBody').innerHTML = `<div style="white-space:pre-line;">${txt}</div>`; 
@@ -1065,7 +1060,6 @@
         document.getElementById('detailModal').style.display = 'block'; 
     }
     
-    // YENİ EKLENDİ: Hastanın profiline geri dönüş
     function goBackToPatientHistory() {
         if(currentPatientForBack) {
             showPatientHistory(currentPatientForBack);
@@ -1223,128 +1217,3 @@
 </script>
 </body>
 </html>
-
-// api/analyze.js
-// Bio-Chef Pro — AI Analysis Endpoint (GPT-4o Integrated)
-// ─────────────────────────────────────────────────────────
-
-const ALLOWED_MODES = ['yemek', 'spor', 'lara'];
-
-const buildPrompt = (mode, user_data, lang) => {
-    const langRule = lang === 'en' 
-        ? 'RESPONSE LANGUAGE: ENGLISH ONLY.' 
-        : 'YANIT DİLİ: YALNIZCA TÜRKÇE.';
-
-    if (mode === 'spor') {
-        return {
-            system: `Sen profesyonel bir fitness koçusun. 
-            Kullanıcı profili: ${user_data}. 
-            KURALLAR:
-            - Kullanıcı haftada kaç gün seçtiyse (örn: 4 gün) SADECE o kadar gün için program yaz.
-            - Her gün için hareket, set ve tekrar ver.
-            - Programın en sonuna "BU HAFTA TAHMİNİ YAKILACAK KALORİ: XXX kcal" şeklinde bir hesaplama ekle.
-            - Format çok düzenli ve estetik olsun.
-            ${langRule}`,
-            user: "Bana özel spor programımı hazırla.",
-        };
-    }
-
-    if (mode === 'lara') {
-        return {
-            system: `Senin adın Lara. Bir yapay zeka diyetisyenisin.
-            KURALLAR:
-            - Cevapların can alıcı, çok kısa ve net olsun. Gereksiz uzun cümlelerden kaçın.
-            - Sadece diyet, spor, besin değerleri ve yemek tarifleri hakkında konuş.
-            - Bu konular dışındaki sorulara nazikçe reddederek sadece uzmanlık alanında cevap verebileceğini söyle.
-            ${langRule}`,
-            user: user_data,
-        };
-    }
-
-    // GÜNCELLENMİŞ YEMEK ANALİZ MODU
-    return {
-        system: `Sen kıdemli bir gıda bilimcisi ve klinik diyetisyensin.
-        Kullanıcı profili: ${user_data}.
-
-        KURALLAR:
-        - Görüntüdeki insanları tamamen yoksay. Sadece gıdaya odaklan.
-        - Aşağıdaki 5 bölümü SIRA İLE, eksiksiz yaz. Başka format kullanma.
-
-        FORMAT (Sıralama kritiktir, her bölüm numara ile başlasın):
-        1. YEMEK ADI: Gıdanın tam adı.
-        2. BESİN DEĞERLERİ: Tahmini Porsiyon Gramajı + Kalori (kcal) · Protein (g) · Karbonhidrat (g) · Yağ (g).
-        3. NET TAVSİYE: Tüketim onayı/reddi ve kullanıcı hedefine göre can alıcı tavsiye (1-2 cümle).
-        4. ÜRÜN ÖZETİ: İçerik ve hazırlanış tarzı hakkında kısa, profesyonel bir özet.
-        5. HEDEF UYUM SKORU: Sadece "[SKOR: X]" yaz (X = 1-10 arası tam sayı).
-
-        ${langRule}`,
-        user: [
-            {
-                type: 'text',
-                text: lang === 'en' 
-                    ? 'Analyze the food in the image. Follow the 5-section sequence exactly.' 
-                    : 'Görüntüdeki gıdayı analiz et. 5 bölümlük yeni sıralamayı eksiksiz uygula.',
-            },
-            {
-                type: 'image_url',
-                image_url: { url: '{IMAGE}', detail: 'low' },
-            },
-        ],
-    };
-};
-
-export default async function handler(req, res) {
-    if (req.method !== 'POST') return res.status(405).json({ error: 'Method Not Allowed' });
-
-    const { image, user_data, mode, lang = 'tr' } = req.body ?? {};
-
-    if (!ALLOWED_MODES.includes(mode)) return res.status(400).json({ error: 'Geçersiz mod.' });
-    if (!user_data) return res.status(400).json({ error: 'Veri eksik.' });
-
-    try {
-        const prompt = buildPrompt(mode, user_data, lang);
-        
-        // Görseli prompt içine yerleştirme
-        const userContent = mode === 'yemek' 
-            ? prompt.user.map(b => 
-                b.type === 'image_url' 
-                    ? { ...b, image_url: { ...b.image_url, url: image } } 
-                    : b
-              )
-            : prompt.user;
-
-        const openaiRes = await fetch('https://api.openai.com/v1/chat/completions', {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                model: 'gpt-4o',
-                max_tokens: 1000,
-                temperature: 0.3,
-                messages: [
-                    { role: 'system', content: prompt.system },
-                    { role: 'user', content: userContent },
-                ],
-            }),
-        });
-
-        if (!openaiRes.ok) {
-            return res.status(502).json({ error: 'Yapay zeka servisi yanıt vermedi.' });
-        }
-
-        const data = await openaiRes.json();
-        const analysis = data?.choices?.[0]?.message?.content?.trim();
-
-        if (!analysis) {
-            return res.status(502).json({ error: 'Analiz sonucu alınamadı.' });
-        }
-
-        return res.status(200).json({ analysis });
-
-    } catch (err) {
-        console.error('[BioChef] Sistem hatası:', err);
-        return res.status(500).json({ error: 'Sistem hatası.' });
-    }
-}
