@@ -2,7 +2,7 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
     <title>CaloXmeal | VIP Analiz</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -78,7 +78,7 @@
             color: white; 
             margin-bottom: 15px; 
             text-align: center; 
-            font-size: 0.95rem;
+            font-size: 16px; /* Ekranın büyümesini kesin engellemek için 16px yapıldı */
             transition: all 0.3s ease;
             outline: none;
         }
@@ -512,9 +512,9 @@
                     <input type="text" id="dietCodeInput" placeholder="Diyetisyen Kodunu Gir" maxlength="8" style="background: rgba(0,0,0,0.5); font-weight: bold; letter-spacing: 1px;">
                     <button id="btnDietConnSub" class="btn btn-sub" style="background: linear-gradient(135deg, var(--primary), var(--primary-hover)); margin-top:0;" onclick="connectToDietician()">KODLA BAĞLAN</button>
                 </div>
-                <div id="dietInfoMode" style="display:none; padding:10px;">
+                <div id="dietInfoMode" style="display:none; padding:10px; text-align: center;">
                     <p id="dietStatus" style="font-weight:900; color:var(--primary); font-size:1rem;"></p>
-                    <button class="btn" style="background: linear-gradient(135deg, var(--danger), #b91c1c); padding:12px; font-size:0.8rem; margin-top:15px; width:auto;" onclick="disconnectDietician()">DİYETİSYENDEN AYRIL</button>
+                    <button class="btn" style="background: linear-gradient(135deg, var(--danger), #b91c1c); padding:12px; font-size:0.8rem; margin-top:15px; width:fit-content; margin-left:auto; margin-right:auto;" onclick="disconnectDietician()">DİYETİSYENDEN AYRIL</button>
                 </div>
             </div>
 
