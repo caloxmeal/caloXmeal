@@ -661,7 +661,7 @@
     // --- AUTH İŞLEMLERİ ---
     auth.onAuthStateChanged(user => {
         if (user) {
-            // Güvenli kullanıcı adı: displayName boşsa e-postanın @ öncesi kısmını alır. Çökmeyi engeller.
+            // Güvenli kullanıcı adı: displayName boşsa e-postanın @ öncesi kısmını alır.
             const safeName = user.displayName ? user.displayName : user.email.split('@')[0];
             
             db.collection('partner_data').doc(safeName.toLowerCase()).get().then(doc => {
@@ -675,8 +675,11 @@
                     document.getElementById('topHeader').style.display = 'flex';
                     document.getElementById('bottomNav').style.display = 'flex';
                     switchTab('tab-home'); 
+                    
+                    // KULLANICI İSMİNİ VE İKONLARI EKRANA BASAR
                     document.getElementById('uMail').innerText = "@" + safeName;
                     setupUser(user); 
+                    
                     startCamera(); 
                     listenNotifications(); 
                     listenFriends(); 
@@ -686,11 +689,22 @@
                 }
             }).catch(e => {
                 console.error("Giriş sonrası veri hatası:", e);
-                // Olası bir Firestore veritabanı kısıtlamasında kullanıcının dışarıda kalmasını önler:
+                // KURTARMA BLOĞU: Veritabanından hata dönse bile kullanıcıyı içeride tutar ve eksikleri tamamlar.
                 toggleView('mainView'); 
                 document.getElementById('topHeader').style.display = 'flex';
                 document.getElementById('bottomNav').style.display = 'flex';
                 switchTab('tab-home');
+                
+                // BU KISIM EKSİKTİ: Profil ismini ve ikonları kurtarma modunda da ekrana basıyoruz.
+                document.getElementById('uMail').innerText = "@" + safeName;
+                setupUser(user);
+                
+                startCamera(); 
+                listenNotifications(); 
+                listenFriends(); 
+                showStreak(); 
+                checkDieticianLink(); 
+                calculateDailyMacros();
             });
         } else { 
             document.getElementById('topHeader').style.display = 'none';
@@ -704,6 +718,8 @@
         if(saved.age) document.getElementById('uAge').value = saved.age;
         if(saved.weight) document.getElementById('uWeight').value = saved.weight;
         if(saved.goal) document.getElementById('uGoal').value = saved.goal;
+        
+        // BİLDİRİM VE ARKADAŞ İKONLARINI GÖRÜNÜR YAPAR
         document.getElementById('bellIcon').style.display = 'flex';
         document.getElementById('friendListBtn').style.display = 'flex';
     }
@@ -1094,7 +1110,6 @@
         try { 
             await auth.signInWithEmailAndPassword(document.getElementById('lEmail').value, document.getElementById('lPass').value); 
         } catch(e) { 
-            // Giriş hatası daha açıklayıcı yapıldı (Sorun çıkarsa terminalde görmek için)
             alert("Giriş Hatası: Bilgilerinizi kontrol edin. (" + e.message + ")"); 
         } 
     }
