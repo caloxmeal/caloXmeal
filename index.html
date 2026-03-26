@@ -433,6 +433,7 @@
             <button id="btnRetry" class="btn btn-sub" style="display:none; background: linear-gradient(135deg, var(--premium), #d97706); color:black; font-size: 1.1rem; padding: 20px;" onclick="resetCamera()">🔄 YENİDEN ANALİZ ET</button>
 
             <div id="macroDashboard" class="macro-tracker">
+                <div id="txtDailyMacros" style="grid-column: 1 / -1; text-align: center; font-weight: 900; color: var(--primary); font-size: 1.15rem; padding-bottom: 8px; border-bottom: 1px dashed var(--glass-border); margin-bottom: 5px; letter-spacing: 0.5px;">⭐ Günlük Sağlık Barım</div>
                 <div class="macro-item">
                     <span class="macro-label">PROTEİN</span>
                     <div class="macro-progress"><div id="barProtein" class="macro-bar" style="width: 0%; background: linear-gradient(90deg, #0284c7, var(--accent));"></div></div>
@@ -473,7 +474,7 @@
 
             <hr style="border: 0; border-top: 1px solid var(--glass-border); margin: 25px 0;">
 
-            <h3 style="color:white; margin-bottom:15px; font-weight: 800;">🔔 Gelen Bildirimler</h3>
+            <h3 id="txtNotHead" style="color:white; margin-bottom:15px; font-weight: 800;">🔔 Gelen Bildirimler</h3>
             <div id="notifList"></div>
 
             <hr style="border: 0; border-top: 1px solid var(--glass-border); margin: 25px 0;">
@@ -576,15 +577,17 @@
     const langData = {
         tr: {
             headers: ["YEMEK ADI 🍽️","BESİN DEĞERLERİ 📊","NET TAVSİYE 💡","ÜRÜN ÖZETİ 🔍","SKOR 🎯"],
-            notif: "Bildirimler", followers: "Takip Ettiklerin", hist: "GEÇMİŞ ANALİZLERİM", detail: "Detay Gör 🔍",
-            ana: "📸 ANALİZ ET", retry: "🔄 YENİDEN ANALİZ ET", out: "GÜVENLİ ÇIKIŞ", friend: "👫 DİYET DOSTU", lara: "🤖 LARA", spor: "🏃‍♂️ SPOR",
-            seri: "Seri", loading: "🔍 İNCELENİYOR...", h1: "CaloXmeal", login: "GİRİŞ YAP", reg: "Kayıt Ol", regTitle: "KAYIT OL"
+            notif: "Gelen Bildirimler", followers: "Takip Ettiklerin", hist: "TÜM GEÇMİŞ", detail: "Detay Gör 🔍",
+            ana: "📸 ANALİZ ET", retry: "🔄 YENİDEN ANALİZ ET", out: "GÜVENLİ ÇIKIŞ", friend: "👫 DİYET DOSTU ARAMA", lara: "🤖 YZ Diyetisyen: LARA", spor: "🏃‍♂️ SPOR PLANLA",
+            seri: "Seri", loading: "🔍 İNCELENİYOR...", h1: "CaloXmeal", login: "GİRİŞ YAP", reg: "Kayıt Ol", regTitle: "KAYIT OL",
+            dailyMacros: "⭐ Günlük Sağlık Barım"
         },
         en: {
             headers: ["MEAL NAME 🍽️","NUTRITION 📊","ADVICE 💡","SUMMARY 🔍","SCORE 🎯"],
-            notif: "Notifications", followers: "Following", hist: "ANALYSIS HISTORY", detail: "View Detail 🔍",
-            ana: "📸 ANALYZE", retry: "🔄 RE-ANALYZE", out: "LOGOUT", friend: "👫 DIET PARTNER", lara: "🤖 LARA", spor: "🏃‍♂️ SPORT",
-            seri: "Streak", loading: "🔍 ANALYZING...", spLoading: "CREATING PLAN...", h1: "CaloXmeal", login: "LOGIN", reg: "Sign Up", regTitle: "SIGN UP"
+            notif: "Notifications", followers: "Following", hist: "ALL HISTORY", detail: "View Detail 🔍",
+            ana: "📸 ANALYZE", retry: "🔄 RE-ANALYZE", out: "SECURE LOGOUT", friend: "👫 FIND DIET PARTNER", lara: "🤖 AI Dietician: LARA", spor: "🏃‍♂️ PLAN SPORT",
+            seri: "Streak", loading: "🔍 ANALYZING...", spLoading: "CREATING PLAN...", h1: "CaloXmeal", login: "LOGIN", reg: "Sign Up", regTitle: "SIGN UP",
+            dailyMacros: "⭐ Daily Health Bar"
         }
     };
 
@@ -659,13 +662,19 @@
     function changeLang(l) {
         currentLang = l; 
         const d = langData[l];
-        document.getElementById('txtNotHead').innerText = d.notif;
-        document.getElementById('txtFriendsHead').innerText = d.followers;
-        document.getElementById('btnHistToggle').innerText = d.hist;
-        document.getElementById('btnAna').innerText = d.ana;
+        
+        if(document.getElementById('txtNotHead')) document.getElementById('txtNotHead').innerText = "🔔 " + d.notif;
+        if(document.getElementById('txtFriendsHead')) document.getElementById('txtFriendsHead').innerText = d.followers;
+        if(document.getElementById('btnHistToggle')) document.getElementById('btnHistToggle').innerText = d.hist;
+        if(document.getElementById('btnAna')) document.getElementById('btnAna').innerText = d.ana;
         if(document.getElementById('btnRetry')) document.getElementById('btnRetry').innerText = d.retry;
-        document.getElementById('txtSeri').innerText = d.seri;
-        document.getElementById('txtAppName').innerText = d.h1;
+        if(document.getElementById('txtSeri')) document.getElementById('txtSeri').innerText = d.seri;
+        if(document.getElementById('txtAppName')) document.getElementById('txtAppName').innerText = d.h1;
+        if(document.getElementById('btnOut')) document.getElementById('btnOut').innerText = d.out;
+        if(document.getElementById('btnFriendToggle')) document.getElementById('btnFriendToggle').innerText = d.friend;
+        if(document.getElementById('txtLaraTitle')) document.getElementById('txtLaraTitle').innerText = d.lara;
+        if(document.getElementById('btnSp')) document.getElementById('btnSp').innerText = d.spor;
+        if(document.getElementById('txtDailyMacros')) document.getElementById('txtDailyMacros').innerText = d.dailyMacros;
     }
 
     // --- AUTH İŞLEMLERİ ---
