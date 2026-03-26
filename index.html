@@ -975,8 +975,10 @@
             resDiv.scrollIntoView({ behavior: 'smooth' });
             
         } catch(e) { 
-            alert(currentLang === 'tr' ? "Analiz Hatası. Lütfen tekrar deneyiniz." : "Analysis Error. Please try again."); 
-            resetCamera(); 
+            // BURASI GÜNCELLENDİ: Yükleme ekranı kalkar, "Yeniden Analiz Et" butonu ekrana gelir.
+            alert(currentLang === 'tr' ? "Yemek algılanamadı veya analiz başarısız. Lütfen tekrar deneyiniz." : "No food detected or analysis failed. Please try again."); 
+            document.getElementById('freezeLayer').style.display = 'none'; 
+            document.getElementById('btnRetry').style.display = 'block'; 
         }
     }
 
