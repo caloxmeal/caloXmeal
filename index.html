@@ -337,7 +337,7 @@
         </div>
         
         <div style="position: absolute; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; z-index: 5;">
-            <div style="font-size: 1.5rem; font-weight: 900; background: linear-gradient(to right, var(--primary), var(--accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-shadow: 0px 4px 15px rgba(16, 185, 129, 0.4); letter-spacing: 1px;">CaloXmeal</div>
+            <img src="logo.png" alt="CaloXmeal" style="height: 35px; width: auto; object-fit: contain;">
             <div id="streakBadge" class="streak-badge" style="margin-top: 5px;">
                 🔥 <span id="streakCount">0</span> <span id="txtSeri">Seri</span>
             </div>
@@ -359,7 +359,11 @@
     </div>
 
     <div id="loginView" class="auth-container">
-        <h1 id="txtAppName">CaloXmeal</h1>
+        <div style="text-align: center; margin-bottom: 25px;">
+            <img src="logo.png" alt="CaloXmeal" style="max-width: 220px;">
+            <h1 id="txtAppName" style="display:none;">CaloXmeal</h1>
+        </div>
+        
         <div class="role-selector">
             <button class="role-btn active" id="btnRoleUser" onclick="setRole('user', this)">DANIŞAN</button>
             <button class="role-btn" id="btnRoleDietician" onclick="setRole('dietician', this)">DİYETİSYEN</button>
