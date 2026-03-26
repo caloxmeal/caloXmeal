@@ -334,8 +334,12 @@
             <span onclick="changeLang('tr')" style="font-size: 1.6rem; cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.2)'" onmouseout="this.style.transform='scale(1)'" title="Türkçe">🇹🇷</span>
             <span onclick="changeLang('en')" style="font-size: 1.6rem; cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.2)'" onmouseout="this.style.transform='scale(1)'" title="English">🇺🇸</span>
         </div>
-        <div id="streakBadge" class="streak-badge">
-            🔥 <span id="streakCount">0</span> <span id="txtSeri">Seri</span>
+        
+        <div style="display: flex; flex-direction: column; align-items: center;">
+            <div style="font-size: 1.5rem; font-weight: 900; background: linear-gradient(to right, var(--primary), var(--accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-shadow: 0px 4px 15px rgba(16, 185, 129, 0.4); letter-spacing: 1px;">CaloXmeal</div>
+            <div id="streakBadge" class="streak-badge" style="margin-top: 5px;">
+                🔥 <span id="streakCount">0</span> <span id="txtSeri">Seri</span>
+            </div>
         </div>
         <div style="display: flex; gap:12px;">
             <div class="bell-container" onclick="switchTab('tab-messages')" id="bellIcon" style="display:none;">
@@ -667,6 +671,8 @@
             db.collection('partner_data').doc(safeName.toLowerCase()).get().then(doc => {
                 const data = doc.data() || {};
                 if(data.role === 'dietician') {
+                    // DİYETİSYEN PORTALI DÜZELTMESİ (Üst bilgi eklendi ve görünüm garantilendi)
+                    document.getElementById('topHeader').style.display = 'flex';
                     toggleView('dieticianView'); 
                     document.getElementById('dMail').innerText = "@" + safeName; 
                     handleDieticianPortal(safeName.toLowerCase());
