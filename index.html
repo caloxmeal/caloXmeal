@@ -78,7 +78,7 @@
             color: white; 
             margin-bottom: 15px; 
             text-align: center; 
-            font-size: 16px; /* Ekranın büyümesini kesin engellemek için 16px yapıldı */
+            font-size: 16px; 
             transition: all 0.3s ease;
             outline: none;
         }
@@ -178,7 +178,6 @@
         @keyframes pulse { 0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(249, 115, 22, 0.4); } 70% { transform: scale(1.05); box-shadow: 0 0 0 10px rgba(249, 115, 22, 0); } 100% { transform: scale(1); } }
         @keyframes pulse-overlay { 0% { opacity: 0.8; } 50% { opacity: 1; } 100% { opacity: 0.8; } }
         
-        /* BOYUTLAR 35px'E KÜÇÜLTÜLDÜ VE SİMETRİ İÇİN AYARLANDI */
         .bell-container, .friends-btn { 
             cursor: pointer; display: flex; align-items: center; justify-content: center; 
             width: 35px; height: 35px; background: rgba(255,255,255,0.05); 
@@ -568,7 +567,7 @@
     let userRole = 'user';
     let dailyTotals = { protein: 0, carb: 0, fat: 0, cal: 0 };
     const dailyLimits = { protein: 150, carb: 200, fat: 70, cal: 2000 };
-    let generatedCode = null;
+    let secureHash = null; // GÜVENLİK GÜNCELLEMESİ: Hackerların çözemeyeceği Hash var
     let pendingReg = null;
     
     // Geri butonu için güncel hastayı aklında tutacak değişken
@@ -1326,7 +1325,7 @@
         auth.sendPasswordResetEmail(email).then(() => alert(currentLang === 'tr' ? "Şifre sıfırlama e-postası gönderildi." : "Password reset email sent.")).catch(e => alert("Hata: " + e.message)); 
     }
     
-    // --- KAYIT MANTIĞI ---
+    // --- GÜVENLİK DUVARLI KAYIT MANTIĞI ---
     async function doRegister() { 
         const email = document.getElementById('rEmail').value.trim();
         const pass = document.getElementById('rPass').value;
@@ -1340,7 +1339,7 @@
         btnRegSub.disabled = true;
 
         try {
-            const response = await fetch('/api/send-code', {
+            const response = await fetch('/api/send-code', { 
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email: email })
@@ -1352,7 +1351,7 @@
                 throw new Error(data.error || "Mail servisi yanıt vermedi.");
             }
 
-            generatedCode = data.testKodu.toString();
+            secureHash = data.hash; // API'den gelen şifreli metni saklıyoruz
             pendingReg = { email, pass, u, role: userRole };
             
             document.getElementById('regFields').style.display = 'none';
@@ -1368,16 +1367,31 @@
     
     async function verifyAndRegister() {
         const code = document.getElementById('vCode').value.trim();
-        if(code !== generatedCode) return alert(currentLang === 'tr' ? "Hatalı kod girdiniz." : "Invalid code.");
+        if(code.length !== 6) return alert(currentLang === 'tr' ? "Lütfen 6 haneli kodu girin." : "Please enter the 6-digit code.");
         
         try {
-            // Güvenlik: Kullanıcı profil senkronizasyonundan önce kaybolmasın diye yerel depolama yazıyoruz
+            // Kodun doğru olup olmadığını Vercel'e (Backend) soruyoruz
+            const response = await fetch('/api/send-code', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: pendingReg.email, codeToVerify: code, hash: secureHash })
+            });
+            
+            const data = await response.json();
+            
+            // Eğer backend kodu onaylamazsa işlem iptal
+            if (!response.ok) {
+                return alert(currentLang === 'tr' ? "Hatalı kod girdiniz!" : "Invalid code!");
+            }
+
+            // GÜVENLİK DUVARI AŞILDI, KAYIT İŞLEMİNE DEVAM ET
             localStorage.setItem('registered_u_' + pendingReg.email, pendingReg.u);
             localStorage.setItem('registered_role_' + pendingReg.email, pendingReg.role);
 
             const cred = await auth.createUserWithEmailAndPassword(pendingReg.email, pendingReg.pass);
             await cred.user.updateProfile({ displayName: pendingReg.u });
-            await db.collection('partner_data').doc(pendingReg.u.toLowerCase()).set({ username: pendingReg.u.toLowerCase(), role: pendingReg.role }, { merge: true });
+            // GÜVENLİK GÜNCELLEMESİ: Veritabanına kullanıcının UID mühürünü basıyoruz
+            await db.collection('partner_data').doc(pendingReg.u.toLowerCase()).set({ username: pendingReg.u.toLowerCase(), role: pendingReg.role, uid: cred.user.uid }, { merge: true });
             
             alert(currentLang === 'tr' ? "Hesabınız başarıyla oluşturuldu! Yönlendiriliyorsunuz..." : "Account created successfully! Redirecting...");
             location.reload();
@@ -1390,7 +1404,7 @@
     function cancelVerify() {
         document.getElementById('verifyFields').style.display = 'none';
         document.getElementById('regFields').style.display = 'block';
-        generatedCode = null;
+        secureHash = null;
         pendingReg = null;
         document.getElementById('vCode').value = '';
     }
@@ -1425,7 +1439,8 @@
         
         localStorage.setItem('diet_code_' + u, c); // Anında kalıcılık için
         
-        await db.collection('dieticians').doc(u).set({ code: c }, { merge: true }); 
+        // GÜVENLİK GÜNCELLEMESİ: Diyetisyen kodu kaydedilirken UID mühürünü basıyoruz
+        await db.collection('dieticians').doc(u).set({ code: c, uid: auth.currentUser.uid }, { merge: true }); 
         alert(currentLang === 'tr' ? "Kod başarıyla kaydedildi." : "Code saved successfully."); 
     }
     
