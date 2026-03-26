@@ -282,7 +282,7 @@
             <input type="text" id="laraInputModal" placeholder="Mesajınızı yazın..." style="margin-bottom:0; text-align:left;">
             <button class="btn btn-main" style="width:70px; padding:0; font-size: 1.2rem;">🚀</button>
         </div>
-        <button class="btn btn-outline" onclick="document.getElementById('laraModal').style.display='none'">Kapat</button>
+        <button id="btnLaraCloseModal" class="btn btn-outline" onclick="document.getElementById('laraModal').style.display='none'">Kapat</button>
     </div>
 </div>
 
@@ -290,7 +290,7 @@
     <div class="modal-content">
         <div id="sportInputArea">
             <h3 id="txtSpTitle" style="color:var(--premium); text-align:center; margin-bottom:20px; font-weight: 900;">🏋️ Spor Programı Hazırlığı</h3>
-            <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:15px; text-align:center;">Size en uygun programı hazırlamam için:</p>
+            <p id="txtSpSubtitle" style="font-size:0.85rem; color:var(--text-muted); margin-bottom:15px; text-align:center;">Size en uygun programı hazırlamam için:</p>
             <input type="number" id="sqAge" placeholder="Yaşınız">
             <input type="number" id="sqWeight" placeholder="Kilonuz (kg)">
             <input type="number" id="sqDays" placeholder="Haftada kaç gün spor yapabilirsiniz?">
@@ -301,16 +301,16 @@
             </select>
             <input type="text" id="sqEquipment" placeholder="Mekan (Ev/Salon) ve Ekipman Durumu">
             <input type="text" id="sqInjury" placeholder="Sakatlık veya engel var mı?">
-            <button class="btn btn-main" style="background: linear-gradient(135deg, var(--premium), #d97706); color:black;" onclick="generateSportProgram()">PROGRAMI OLUŞTUR</button>
+            <button id="btnSpSubmit" class="btn btn-main" style="background: linear-gradient(135deg, var(--premium), #d97706); color:black;" onclick="generateSportProgram()">PROGRAMI OLUŞTUR</button>
         </div>
         <div id="sportLoadingArea" style="display:none;">
-            <div class="loading-text">PLANINIZ OLUŞTURULUYOR... <br><br> Lütfen Bekleyin.</div>
+            <div id="txtSpLoading" class="loading-text">PLANINIZ OLUŞTURULUYOR... <br><br> Lütfen Bekleyin.</div>
         </div>
         <div id="sportResultArea" style="display:none;">
-            <h3 style="color:var(--primary); text-align:center; margin-bottom:20px; font-weight: 900;">Size Özel Spor Planı</h3>
+            <h3 id="txtSpResultTitle" style="color:var(--primary); text-align:center; margin-bottom:20px; font-weight: 900;">Size Özel Spor Planı</h3>
             <div id="sportPlanContent" class="report-txt" style="max-height: 400px; overflow-y: auto; background: rgba(0,0,0,0.3); padding: 20px; border-radius: 20px; border: 1px solid var(--glass-border);"></div>
-            <button class="btn btn-sub" style="background: linear-gradient(135deg, var(--danger), #b91c1c); margin-top:20px;" onclick="downloadSportPDF()">📄 PDF OLARAK İNDİR</button>
-            <button class="btn btn-outline" style="margin-top:10px;" onclick="resetSportModal()">YENİDEN DÜZENLE</button>
+            <button id="btnSpDownload" class="btn btn-sub" style="background: linear-gradient(135deg, var(--danger), #b91c1c); margin-top:20px;" onclick="downloadSportPDF()">📄 PDF OLARAK İNDİR</button>
+            <button id="btnSpReset" class="btn btn-outline" style="margin-top:10px;" onclick="resetSportModal()">YENİDEN DÜZENLE</button>
         </div>
         <button class="btn btn-outline" id="sportModalCloseBtn" onclick="document.getElementById('sportQuestionsModal').style.display='none'; resetSportModal();">Kapat</button>
     </div>
@@ -323,7 +323,7 @@
         
         <div class="side-by-side-btns" style="margin-top:20px;">
             <button id="btnModalBack" class="btn btn-neutral" style="display:none;" onclick="goBackToPatientHistory()">🔙 GERİ GİT</button>
-            <button class="btn btn-sub" onclick="document.getElementById('detailModal').style.display='none'">KAPAT</button>
+            <button id="btnModalClose" class="btn btn-sub" onclick="document.getElementById('detailModal').style.display='none'">KAPAT</button>
         </div>
     </div>
 </div>
@@ -370,29 +370,29 @@
         </div>
         <input type="email" id="lEmail" placeholder="E-posta Adresi">
         <input type="password" id="lPass" placeholder="Şifre">
-        <button class="btn btn-main" onclick="doLogin()">GİRİŞ YAP</button>
-        <button class="btn btn-outline" style="border:none; margin-top:10px; font-size:0.8rem;" onclick="doReset()">Şifremi Unuttum?</button>
-        <button class="btn btn-outline" onclick="toggleView('regView')">Yeni Kayıt Oluştur</button>
+        <button id="btnLgn" class="btn btn-main" onclick="doLogin()">GİRİŞ YAP</button>
+        <button id="btnForgot" class="btn btn-outline" style="border:none; margin-top:10px; font-size:0.8rem;" onclick="doReset()">Şifremi Unuttum?</button>
+        <button id="btnNewReg" class="btn btn-outline" onclick="toggleView('regView')">Yeni Kayıt Oluştur</button>
     </div>
 
     <div id="regView" class="auth-container" style="display:none;">
         <h1 id="txtRegTitle">KAYIT OL</h1>
         <div id="regFields">
             <div class="role-selector">
-                <button class="role-btn active" onclick="setRole('user', this)">DANIŞAN</button>
-                <button class="role-btn" onclick="setRole('dietician', this)">DİYETİSYEN</button>
+                <button id="btnRoleUser2" class="role-btn active" onclick="setRole('user', this)">DANIŞAN</button>
+                <button id="btnRoleDietician2" class="role-btn" onclick="setRole('dietician', this)">DİYETİSYEN</button>
             </div>
             <input type="email" id="rEmail" placeholder="E-posta Adresi">
             <input type="text" id="rUser" placeholder="Kullanıcı Adı">
             <input type="password" id="rPass" placeholder="Şifre">
-            <button class="btn btn-sub" onclick="doRegister()">HESABI OLUŞTUR</button>
-            <button class="btn btn-outline" onclick="toggleView('loginView')">Geri Dön</button>
+            <button id="btnRegSub" class="btn btn-sub" onclick="doRegister()">HESABI OLUŞTUR</button>
+            <button id="btnBack" class="btn btn-outline" onclick="toggleView('loginView')">Geri Dön</button>
         </div>
         <div id="verifyFields" style="display:none;">
-            <p style="color:var(--text-muted); text-align:center; font-size:0.85rem; margin-bottom:15px;">E-posta adresinize gönderilen 6 haneli kodu giriniz.</p>
+            <p id="txtVerify" style="color:var(--text-muted); text-align:center; font-size:0.85rem; margin-bottom:15px;">E-posta adresinize gönderilen 6 haneli kodu giriniz.</p>
             <input type="text" id="vCode" placeholder="6 Haneli Kod" maxlength="6" style="letter-spacing: 5px; font-weight: bold; font-size: 1.2rem; text-align: center;">
-            <button class="btn btn-main" onclick="verifyAndRegister()">KODU DOĞRULA</button>
-            <button class="btn btn-outline" onclick="cancelVerify()">İptal Et</button>
+            <button id="btnVerify" class="btn btn-main" onclick="verifyAndRegister()">KODU DOĞRULA</button>
+            <button id="btnCancel" class="btn btn-outline" onclick="cancelVerify()">İptal Et</button>
         </div>
     </div>
 
@@ -403,7 +403,7 @@
             <div style="margin-top:20px; background: rgba(0,0,0,0.2); padding: 20px; border-radius: 20px; border: 1px solid var(--glass-border);">
                 <p id="txtSetCode" style="font-size:0.85rem; color:var(--text-muted); text-align:center; margin-bottom: 10px;">Özel Kodunuzu Belirleyin:</p>
                 <input type="text" id="myDietCodeInput" maxlength="8" placeholder="Örn: DIET9900" style="background:rgba(0,0,0,0.5); font-weight: bold; font-size: 1.1rem; letter-spacing: 2px;">
-                <button class="btn btn-main" onclick="saveDieticianCode()">KODU KAYDET</button>
+                <button id="btnSaveCode" class="btn btn-main" onclick="saveDieticianCode()">KODU KAYDET</button>
                 <div id="currentCodeDisplay" style="margin-top:15px; text-align:center; font-weight:900; color:var(--premium); font-size: 1.1rem;"></div>
             </div>
         </div>
@@ -414,7 +414,7 @@
         </div>
         <h3 id="txtMyPatients" style="margin-bottom:20px; border-bottom:1px solid var(--glass-border); padding-bottom:10px; font-weight: 800;">Bağlı Hastalarım</h3>
         <div id="patientList"></div>
-        <button class="btn btn-outline" onclick="auth.signOut(); location.reload();" style="margin-top:30px;">GÜVENLİ ÇIKIŞ</button>
+        <button id="btnOutPortal" class="btn btn-outline" onclick="auth.signOut(); location.reload();" style="margin-top:30px;">GÜVENLİ ÇIKIŞ</button>
     </div>
 
     <div id="mainView" style="display:none;">
@@ -435,22 +435,22 @@
             <div id="macroDashboard" class="macro-tracker">
                 <div id="txtDailyMacros" style="grid-column: 1 / -1; text-align: center; font-weight: 900; color: var(--primary); font-size: 1.15rem; padding-bottom: 8px; border-bottom: 1px dashed var(--glass-border); margin-bottom: 5px; letter-spacing: 0.5px;">⭐ Günlük Sağlık Barım</div>
                 <div class="macro-item">
-                    <span class="macro-label">PROTEİN</span>
+                    <span id="lblPro" class="macro-label">PROTEİN</span>
                     <div class="macro-progress"><div id="barProtein" class="macro-bar" style="width: 0%; background: linear-gradient(90deg, #0284c7, var(--accent));"></div></div>
                     <span id="valProtein" class="macro-val">0 / 150g</span>
                 </div>
                 <div class="macro-item">
-                    <span class="macro-label">KARB</span>
+                    <span id="lblCarb" class="macro-label">KARB</span>
                     <div class="macro-progress"><div id="barCarb" class="macro-bar" style="width: 0%; background: linear-gradient(90deg, #d97706, var(--premium));"></div></div>
                     <span id="valCarb" class="macro-val">0 / 200g</span>
                 </div>
                 <div class="macro-item">
-                    <span class="macro-label">YAĞ</span>
+                    <span id="lblFat" class="macro-label">YAĞ</span>
                     <div class="macro-progress"><div id="barFat" class="macro-bar" style="width: 0%; background: linear-gradient(90deg, #b91c1c, var(--danger));"></div></div>
                     <span id="valFat" class="macro-val">0 / 70g</span>
                 </div>
                 <div class="macro-item">
-                    <span class="macro-label">KALORİ</span>
+                    <span id="lblCal" class="macro-label">KALORİ</span>
                     <div class="macro-progress"><div id="barCal" class="macro-bar" style="width: 0%; background: linear-gradient(90deg, #059669, var(--primary));"></div></div>
                     <span id="valCal" class="macro-val">0 / 2000</span>
                 </div>
@@ -483,8 +483,8 @@
             <div id="partnerPanel" class="partner-box" style="display:none;">
                 <input type="text" id="partnerUser" placeholder="Kullanıcı Adı Girin" style="background: rgba(0,0,0,0.5);">
                 <div class="side-by-side-btns">
-                    <button class="btn btn-main" onclick="sendFriendRequest()">EKLE</button>
-                    <button class="btn btn-sub" style="background: linear-gradient(135deg, var(--primary), var(--primary-hover)); margin-top:0;" onclick="checkPartner()">SORGULA</button>
+                    <button id="btnFriendAdd" class="btn btn-main" onclick="sendFriendRequest()">EKLE</button>
+                    <button id="btnFriendSearch" class="btn btn-sub" style="background: linear-gradient(135deg, var(--primary), var(--primary-hover)); margin-top:0;" onclick="checkPartner()">SORGULA</button>
                 </div>
                 <div id="partnerResult" style="margin-top:20px; font-weight:bold; white-space:pre-line;"></div>
                 <div id="partnerHistoryList" style="margin-top:10px; text-align:left;"></div>
@@ -494,7 +494,7 @@
         <div id="tab-profile" class="tab-content">
             <div style="text-align:center; margin-bottom:20px;">
                 <div id="uMail" class="user-tag" style="font-size: 1.5rem;"></div> 
-                <p style="color:var(--text-muted); font-size:0.85rem; margin-top:5px;">Üye Profil Bilgileri</p>
+                <p id="txtProfInfo" style="color:var(--text-muted); font-size:0.85rem; margin-top:5px;">Üye Profil Bilgileri</p>
             </div>
 
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px; margin-bottom: 15px;">
@@ -515,11 +515,11 @@
                 </div>
                 <div id="dietInfoMode" style="display:none; padding:10px; text-align: center;">
                     <p id="dietStatus" style="font-weight:900; color:var(--primary); font-size:1rem;"></p>
-                    <button class="btn" style="background: linear-gradient(135deg, var(--danger), #b91c1c); padding:12px; font-size:0.8rem; margin-top:15px; width:fit-content; margin-left:auto; margin-right:auto;" onclick="disconnectDietician()">DİYETİSYENDEN AYRIL</button>
+                    <button id="btnDietDisconnect" class="btn" style="background: linear-gradient(135deg, var(--danger), #b91c1c); padding:12px; font-size:0.8rem; margin-top:15px; width:fit-content; margin-left:auto; margin-right:auto;" onclick="disconnectDietician()">DİYETİSYENDEN AYRIL</button>
                 </div>
             </div>
 
-            <h3 style="margin-top:30px; margin-bottom:15px; border-bottom:1px solid var(--glass-border); padding-bottom:10px; font-weight: 800;">📅 Son 7 Günlük Özet</h3>
+            <h3 id="txtLast7" style="margin-top:30px; margin-bottom:15px; border-bottom:1px solid var(--glass-border); padding-bottom:10px; font-weight: 800;">📅 Son 7 Günlük Özet</h3>
             <div id="profileHistoryList" style="max-height: 300px; overflow-y: auto; padding-right: 5px; scrollbar-width: thin;"></div>
 
             <button id="btnHistToggle" class="btn btn-outline" onclick="toggleHistory()" style="margin-top:15px; display:none;">TÜM GEÇMİŞ</button>
@@ -536,15 +536,15 @@
 <nav class="bottom-nav" id="bottomNav">
     <div class="nav-item active" onclick="switchTab('tab-home')">
         <span class="nav-icon">🏠</span>
-        <span>ANA SAYFA</span>
+        <span id="navHomeText">ANA SAYFA</span>
     </div>
     <div class="nav-item" onclick="switchTab('tab-messages')">
         <span class="nav-icon">💬</span>
-        <span>MESAJLAR</span>
+        <span id="navMsgText">MESAJLAR</span>
     </div>
     <div class="nav-item" onclick="switchTab('tab-profile')">
         <span class="nav-icon">👤</span>
-        <span>PROFİL</span>
+        <span id="navProfText">PROFİL</span>
     </div>
 </nav>
 
@@ -577,17 +577,55 @@
     const langData = {
         tr: {
             headers: ["YEMEK ADI 🍽️","BESİN DEĞERLERİ 📊","NET TAVSİYE 💡","ÜRÜN ÖZETİ 🔍","SKOR 🎯"],
-            notif: "Gelen Bildirimler", followers: "Takip Ettiklerin", hist: "TÜM GEÇMİŞ", detail: "Detay Gör 🔍",
+            notif: "🔔 Gelen Bildirimler", followers: "Takip Ettiklerin", hist: "TÜM GEÇMİŞ", detail: "Detay Gör 🔍",
             ana: "📸 ANALİZ ET", retry: "🔄 YENİDEN ANALİZ ET", out: "GÜVENLİ ÇIKIŞ", friend: "👫 DİYET DOSTU ARAMA", lara: "🤖 YZ Diyetisyen: LARA", spor: "🏃‍♂️ SPOR PLANLA",
             seri: "Seri", loading: "🔍 İNCELENİYOR...", h1: "CaloXmeal", login: "GİRİŞ YAP", reg: "Kayıt Ol", regTitle: "KAYIT OL",
-            dailyMacros: "⭐ Günlük Sağlık Barım"
+            dailyMacros: "⭐ Günlük Sağlık Barım",
+            navHomeText: "ANA SAYFA", navMsgText: "MESAJLAR", navProfText: "PROFİL",
+            lblPro: "PROTEİN", lblCarb: "KARB", lblFat: "YAĞ", lblCal: "KALORİ",
+            txtProfInfo: "Üye Profil Bilgileri", txtLast7: "📅 Son 7 Günlük Özet",
+            txtDietConn: "Diyetisyene Bağlan", btnDietConnSub: "KODLA BAĞLAN", btnDietDisconnect: "DİYETİSYENDEN AYRIL",
+            dietCodeInput: "Diyetisyen Kodunu Gir",
+            btnFriendAdd: "EKLE", btnFriendSearch: "SORGULA", partnerUser: "Kullanıcı Adı Girin",
+            laraInput: "Mesajınızı yazın...", btnPdf: "📄 PDF KAYDET",
+            uAge: "YAŞ", uWeight: "KİLO",
+            goalLoss: "Kilo Vermek (-)", goalGain: "Kilo Almak (+)", goalMaintain: "Kiloyu Korumak (=)",
+            btnRoleUser: "DANIŞAN", btnRoleDietician: "DİYETİSYEN", btnRoleUser2: "DANIŞAN", btnRoleDietician2: "DİYETİSYEN",
+            lEmail: "E-posta Adresi", lPass: "Şifre", btnForgot: "Şifremi Unuttum?", btnNewReg: "Yeni Kayıt Oluştur", btnLgn: "GİRİŞ YAP",
+            rEmail: "E-posta Adresi", rUser: "Kullanıcı Adı", rPass: "Şifre", btnRegSub: "HESABI OLUŞTUR", btnBack: "Geri Dön",
+            txtVerify: "E-posta adresinize gönderilen 6 haneli kodu giriniz.", vCode: "6 Haneli Kod", btnVerify: "KODU DOĞRULA", btnCancel: "İptal Et",
+            txtDietPortal: "Diyetisyen Portalı", txtSetCode: "Özel Kodunuzu Belirleyin:", myDietCodeInput: "Örn: DIET9900", btnSaveCode: "KODU KAYDET",
+            txtBroadcast: "📢 Toplu Duyuru / Günlük Ödev", broadcastMsg: "Mesajınızı buraya yazın...", btnBroadcast: "HERKESE GÖNDER", txtMyPatients: "Bağlı Hastalarım",
+            txtSpTitle: "🏋️ Spor Programı Hazırlığı", txtSpSubtitle: "Size en uygun programı hazırlamam için:", sqAge: "Yaşınız", sqWeight: "Kilonuz (kg)", sqDays: "Haftada kaç gün spor yapabilirsiniz?",
+            sqGoalLoss: "Yağ Yakımı", sqGoalMuscle: "Kas Kütlesi", sqGoalKeep: "Form Koruma", sqEquipment: "Mekan (Ev/Salon) ve Ekipman Durumu", sqInjury: "Sakatlık veya engel var mı?",
+            btnSpSubmit: "PROGRAMI OLUŞTUR", txtSpLoading: "PLANINIZ OLUŞTURULUYOR... <br><br> Lütfen Bekleyin.", txtSpResultTitle: "Size Özel Spor Planı", btnSpDownload: "📄 PDF OLARAK İNDİR", btnSpReset: "YENİDEN DÜZENLE", 
+            btnLaraCloseModal: "Kapat", sportModalCloseBtn: "Kapat", modalTitle: "Analiz Detayı", btnModalBack: "🔙 GERİ GİT", btnModalClose: "KAPAT", txtLaraTitleModal: "🤖 YZ Diyetisyen: LARA", btnOutPortal: "GÜVENLİ ÇIKIŞ"
         },
         en: {
             headers: ["MEAL NAME 🍽️","NUTRITION 📊","ADVICE 💡","SUMMARY 🔍","SCORE 🎯"],
-            notif: "Notifications", followers: "Following", hist: "ALL HISTORY", detail: "View Detail 🔍",
+            notif: "🔔 Notifications", followers: "Following", hist: "ALL HISTORY", detail: "View Detail 🔍",
             ana: "📸 ANALYZE", retry: "🔄 RE-ANALYZE", out: "SECURE LOGOUT", friend: "👫 FIND DIET PARTNER", lara: "🤖 AI Dietician: LARA", spor: "🏃‍♂️ PLAN SPORT",
-            seri: "Streak", loading: "🔍 ANALYZING...", spLoading: "CREATING PLAN...", h1: "CaloXmeal", login: "LOGIN", reg: "Sign Up", regTitle: "SIGN UP",
-            dailyMacros: "⭐ Daily Health Bar"
+            seri: "Streak", loading: "🔍 ANALYZING...", h1: "CaloXmeal", login: "LOGIN", reg: "Sign Up", regTitle: "SIGN UP",
+            dailyMacros: "⭐ Daily Health Bar",
+            navHomeText: "HOME", navMsgText: "MESSAGES", navProfText: "PROFILE",
+            lblPro: "PROTEIN", lblCarb: "CARB", lblFat: "FAT", lblCal: "CALORIES",
+            txtProfInfo: "Member Profile Info", txtLast7: "📅 Last 7 Days Summary",
+            txtDietConn: "Connect to Dietician", btnDietConnSub: "CONNECT", btnDietDisconnect: "DISCONNECT DIETICIAN",
+            dietCodeInput: "Enter Dietician Code",
+            btnFriendAdd: "ADD", btnFriendSearch: "SEARCH", partnerUser: "Enter Username",
+            laraInput: "Type your message...", btnPdf: "📄 SAVE PDF",
+            uAge: "AGE", uWeight: "WEIGHT",
+            goalLoss: "Lose Weight (-)", goalGain: "Gain Weight (+)", goalMaintain: "Maintain Weight (=)",
+            btnRoleUser: "CLIENT", btnRoleDietician: "DIETICIAN", btnRoleUser2: "CLIENT", btnRoleDietician2: "DIETICIAN",
+            lEmail: "Email Address", lPass: "Password", btnForgot: "Forgot Password?", btnNewReg: "Create New Account", btnLgn: "LOGIN",
+            rEmail: "Email Address", rUser: "Username", rPass: "Password", btnRegSub: "CREATE ACCOUNT", btnBack: "Go Back",
+            txtVerify: "Enter the 6-digit code sent to your email.", vCode: "6-Digit Code", btnVerify: "VERIFY CODE", btnCancel: "Cancel",
+            txtDietPortal: "Dietician Portal", txtSetCode: "Set Your Private Code:", myDietCodeInput: "E.g. DIET9900", btnSaveCode: "SAVE CODE",
+            txtBroadcast: "📢 Mass Announcement / Task", broadcastMsg: "Type your message here...", btnBroadcast: "SEND TO ALL", txtMyPatients: "My Linked Patients",
+            txtSpTitle: "🏋️ Sport Plan Setup", txtSpSubtitle: "For me to prepare the best program:", sqAge: "Your Age", sqWeight: "Your Weight (kg)", sqDays: "Days per week for sports?",
+            sqGoalLoss: "Fat Loss", sqGoalMuscle: "Muscle Gain", sqGoalKeep: "Maintain Shape", sqEquipment: "Location (Home/Gym) & Equipment", sqInjury: "Any injuries or disabilities?",
+            btnSpSubmit: "CREATE PROGRAM", txtSpLoading: "CREATING YOUR PLAN... <br><br> Please Wait.", txtSpResultTitle: "Your Custom Sport Plan", btnSpDownload: "📄 DOWNLOAD AS PDF", btnSpReset: "RE-EDIT", 
+            btnLaraCloseModal: "Close", sportModalCloseBtn: "Close", modalTitle: "Analysis Detail", btnModalBack: "🔙 GO BACK", btnModalClose: "CLOSE", txtLaraTitleModal: "🤖 AI Dietician: LARA", btnOutPortal: "SECURE LOGOUT"
         }
     };
 
@@ -612,11 +650,11 @@
         
         const listDiv = document.getElementById('profileHistoryList');
         if (last7Days.length === 0) {
-            listDiv.innerHTML = '<p style="text-align:center; color:var(--text-muted); font-size:0.9rem;">Son 7 güne ait veri bulunamadı.</p>';
+            listDiv.innerHTML = `<p style="text-align:center; color:var(--text-muted); font-size:0.9rem;">${currentLang === 'tr' ? 'Son 7 güne ait veri bulunamadı.' : 'No data found for the last 7 days.'}</p>`;
         } else {
             listDiv.innerHTML = last7Days.map(h => `
                 <div class="history-box" onclick="openDetail(\`${h.detail.replace(/`/g, "'")}\`)">
-                    <div class="history-meta">🕒 ${h.date} | ⭐ Puan: ${h.summary}/10</div>
+                    <div class="history-meta">🕒 ${h.date} | ⭐ ${currentLang === 'tr' ? 'Puan' : 'Score'}: ${h.summary}/10</div>
                     <div class="history-meal">🍽️ ${h.meal}</div>
                 </div>`).join('');
         }
@@ -659,22 +697,53 @@
         updateMacroUI();
     }
 
+    // --- KAPSAMLI DİL DEĞİŞTİRME MOTORU ---
     function changeLang(l) {
         currentLang = l; 
         const d = langData[l];
         
-        if(document.getElementById('txtNotHead')) document.getElementById('txtNotHead').innerText = "🔔 " + d.notif;
-        if(document.getElementById('txtFriendsHead')) document.getElementById('txtFriendsHead').innerText = d.followers;
-        if(document.getElementById('btnHistToggle')) document.getElementById('btnHistToggle').innerText = d.hist;
-        if(document.getElementById('btnAna')) document.getElementById('btnAna').innerText = d.ana;
-        if(document.getElementById('btnRetry')) document.getElementById('btnRetry').innerText = d.retry;
-        if(document.getElementById('txtSeri')) document.getElementById('txtSeri').innerText = d.seri;
-        if(document.getElementById('txtAppName')) document.getElementById('txtAppName').innerText = d.h1;
-        if(document.getElementById('btnOut')) document.getElementById('btnOut').innerText = d.out;
-        if(document.getElementById('btnFriendToggle')) document.getElementById('btnFriendToggle').innerText = d.friend;
-        if(document.getElementById('txtLaraTitle')) document.getElementById('txtLaraTitle').innerText = d.lara;
-        if(document.getElementById('btnSp')) document.getElementById('btnSp').innerText = d.spor;
-        if(document.getElementById('txtDailyMacros')) document.getElementById('txtDailyMacros').innerText = d.dailyMacros;
+        // Helper function for safe text/placeholder updates
+        function setText(id, text) {
+            let el = document.getElementById(id);
+            if(el) {
+                if(el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') el.placeholder = text;
+                else el.innerText = text;
+            }
+        }
+
+        // Apply translations map dynamically
+        for (const [key, value] of Object.entries(d)) {
+            if(typeof value === 'string') setText(key, value);
+        }
+
+        // Special handling for freeze layer loading texts (needs innerHTML/style checks)
+        const freeze = document.getElementById('freezeLayer');
+        if(freeze && freeze.style.display !== 'none' && freeze.innerHTML.includes('...')) {
+            freeze.innerHTML = d.loading;
+        }
+
+        // Special handling for goal select options
+        let uG = document.getElementById('uGoal');
+        if(uG) {
+            uG.options[0].text = d.goalLoss;
+            uG.options[1].text = d.goalGain;
+            uG.options[2].text = d.goalMaintain;
+        }
+
+        let sqG = document.getElementById('sqGoal');
+        if(sqG) {
+            sqG.options[0].text = d.sqGoalLoss;
+            sqG.options[1].text = d.sqGoalMuscle;
+            sqG.options[2].text = d.sqGoalKeep;
+        }
+        
+        // Refresh specific dynamic histories if open
+        loadProfileHistory7Days();
+        checkDieticianLink(); 
+        
+        // Greet message check
+        let greet = document.getElementById('txtLaraGreet');
+        if(greet) greet.innerText = (l === 'tr') ? "Merhaba! Ben Lara. Size diyet, yemek ve spor konularında yardımcı olabilirim. Ne sormak istersiniz?" : "Hello! I'm Lara. I can help you with diet, meals, and sports. What would you like to ask?";
     }
 
     // --- AUTH İŞLEMLERİ ---
@@ -778,6 +847,7 @@
         const vid = document.getElementById('video');
         
         vid.pause(); 
+        document.getElementById('freezeLayer').innerText = langData[currentLang].loading;
         document.getElementById('freezeLayer').style.display = 'flex';
         document.getElementById('btnAna').style.display = 'none';
         
@@ -845,7 +915,7 @@
             resDiv.scrollIntoView({ behavior: 'smooth' });
             
         } catch(e) { 
-            alert("Analiz Hatası. Lütfen tekrar deneyiniz."); 
+            alert(currentLang === 'tr' ? "Analiz Hatası. Lütfen tekrar deneyiniz." : "Analysis Error. Please try again."); 
             resetCamera(); 
         }
     }
@@ -875,7 +945,7 @@
             
             document.getElementById('historyList').innerHTML = last24.map(h => `
                 <div class="history-box" onclick="openDetail(\`${h.detail.replace(/`/g, "'")}\`)">
-                    <div class="history-meta">🕒 ${h.date} | ⭐ Puan: ${h.summary}/10</div>
+                    <div class="history-meta">🕒 ${h.date} | ⭐ ${currentLang === 'tr' ? 'Puan' : 'Score'}: ${h.summary}/10</div>
                     <div class="history-meal">🍽️ ${h.meal}</div>
                 </div>`).join('');
         }
@@ -889,12 +959,12 @@
                 const d = snap.docs[0].data();
                 res.innerHTML = `
                 <div class="history-box" style="margin-top:0;" onclick="openDetail(\`${d.fullText.replace(/`/g, "'")}\`)">
-                    <div class="history-meta">🕒 ${d.date} | ⭐ Puan: ${d.score}/10</div>
+                    <div class="history-meta">🕒 ${d.date} | ⭐ ${currentLang === 'tr' ? 'Puan' : 'Score'}: ${d.score}/10</div>
                     <div class="history-meal">🍽️ ${d.mealName}</div>
                     <div style="font-size:0.7rem; color:var(--accent); text-align:right; margin-top:5px;">${langData[currentLang].detail}</div>
                 </div>`;
             } else { 
-                res.innerText = "Veri bulunamadı."; 
+                res.innerText = currentLang === 'tr' ? "Veri bulunamadı." : "Data not found."; 
             }
         });
     }
@@ -910,11 +980,13 @@
             
             snap.forEach(doc => {
                 const d = doc.data();
-                let buttons = `<button class="notif-btn-del" style="background:var(--danger); color:white; border:none; padding:6px 10px; border-radius:8px; font-size:0.7rem; font-weight:bold; cursor:pointer;" onclick="deleteNotif('${doc.id}')">SİL</button>`;
+                const delText = currentLang === 'tr' ? "SİL" : "DEL";
+                let buttons = `<button class="notif-btn-del" style="background:var(--danger); color:white; border:none; padding:6px 10px; border-radius:8px; font-size:0.7rem; font-weight:bold; cursor:pointer;" onclick="deleteNotif('${doc.id}')">${delText}</button>`;
                 
                 // ARKADAŞ İSTEĞİ İSE KABUL ET BUTONU EKLENİR
                 if(d.type === 'friend_request') {
-                    buttons = `<button style="background:var(--primary); color:white; border:none; padding:6px 10px; border-radius:8px; font-size:0.7rem; font-weight:bold; cursor:pointer; margin-right:5px;" onclick="acceptFriend('${doc.id}', '${d.fromUser}')">KABUL ET</button>` + buttons;
+                    const accText = currentLang === 'tr' ? "KABUL ET" : "ACCEPT";
+                    buttons = `<button style="background:var(--primary); color:white; border:none; padding:6px 10px; border-radius:8px; font-size:0.7rem; font-weight:bold; cursor:pointer; margin-right:5px;" onclick="acceptFriend('${doc.id}', '${d.fromUser}')">${accText}</button>` + buttons;
                 }
 
                 list.innerHTML += `
@@ -937,7 +1009,7 @@
         
         // Bildirimi siler
         await db.collection('notifications').doc(notifId).delete();
-        alert("Takip isteği kabul edildi!");
+        alert(currentLang === 'tr' ? "Takip isteği kabul edildi!" : "Follow request accepted!");
     }
 
     // --- DİYETİSYEN PORTALI İŞLEMLERİ (KOD KALICI HALE GETİRİLDİ) ---
@@ -945,14 +1017,14 @@
         // Yerel depolamadan anında yükle
         const localCode = localStorage.getItem('diet_code_' + u);
         if(localCode) {
-            document.getElementById('currentCodeDisplay').innerText = "KOD: " + localCode;
+            document.getElementById('currentCodeDisplay').innerText = (currentLang === 'tr' ? "KOD: " : "CODE: ") + localCode;
             document.getElementById('myDietCodeInput').value = localCode;
         }
 
         // Veritabanından dinle
         db.collection('dieticians').doc(u).onSnapshot(doc => {
             if(doc.exists && doc.data().code) {
-                document.getElementById('currentCodeDisplay').innerText = "KOD: " + doc.data().code;
+                document.getElementById('currentCodeDisplay').innerText = (currentLang === 'tr' ? "KOD: " : "CODE: ") + doc.data().code;
                 document.getElementById('myDietCodeInput').value = doc.data().code;
                 localStorage.setItem('diet_code_' + u, doc.data().code); // Eşitle
             }
@@ -968,12 +1040,12 @@
                 doc.data().patients.forEach(p => {
                     const card = document.createElement('div'); 
                     card.className = 'patient-card';
-                    card.innerHTML = `<div><div style="font-weight:900; font-size:1.1rem; color:var(--primary);">@${p}</div><div id="pLast_${p}" style="font-size:0.8rem; color:var(--text-muted); margin-top:4px;">Yükleniyor...</div></div><span style="font-size:1.5rem; color:var(--accent);">➔</span>`;
+                    card.innerHTML = `<div><div style="font-weight:900; font-size:1.1rem; color:var(--primary);">@${p}</div><div id="pLast_${p}" style="font-size:0.8rem; color:var(--text-muted); margin-top:4px;">${currentLang === 'tr' ? 'Yükleniyor...' : 'Loading...'}</div></div><span style="font-size:1.5rem; color:var(--accent);">➔</span>`;
                     card.onclick = () => showPatientHistory(p); 
                     list.appendChild(card);
                     
                     db.collection('partner_data').doc(p).collection('history').orderBy('unix', 'desc').limit(1).get().then(s => {
-                        if(!s.empty) document.getElementById('pLast_'+p).innerText = "Son: " + s.docs[0].data().mealName;
+                        if(!s.empty) document.getElementById('pLast_'+p).innerText = (currentLang === 'tr' ? "Son: " : "Last: ") + s.docs[0].data().mealName;
                     });
                 });
             }
@@ -985,28 +1057,34 @@
         document.getElementById('btnModalBack').style.display = 'none';
         
         db.collection('partner_data').doc(p).collection('history').orderBy('unix', 'desc').limit(10).get().then(snap => {
+            const profText = currentLang === 'tr' ? "Profili" : "Profile";
+            const dmTitle = currentLang === 'tr' ? "💬 Direkt Mesaj Gönder" : "💬 Send Direct Message";
+            const dmPlace = currentLang === 'tr' ? "Hastaya özel mesaj yaz..." : "Write a custom message...";
+            const dmBtn = currentLang === 'tr' ? "MESAJI GÖNDER" : "SEND MESSAGE";
+            const repTitle = currentLang === 'tr' ? "Son Raporlar" : "Recent Reports";
+            
             let html = `
                 <div style="text-align:center; border-bottom:1px solid var(--glass-border); padding-bottom:15px; margin-bottom:15px;">
-                    <h3 style="color:var(--primary);">@${p} Profili</h3>
+                    <h3 style="color:var(--primary);">@${p} ${profText}</h3>
                 </div>
                 <div style="background:rgba(14, 165, 233, 0.05); border: 1px solid rgba(14, 165, 233, 0.2); padding:15px; border-radius:15px; margin-bottom:20px;">
-                    <h4 style="font-size:0.85rem; color:var(--accent); margin-bottom:10px;">💬 Direkt Mesaj Gönder</h4>
-                    <input type="text" id="dmInput_${p}" placeholder="Hastaya özel mesaj yaz..." style="margin-bottom:10px; padding:12px; font-size:0.85rem; background:rgba(0,0,0,0.5);">
-                    <button class="btn btn-sub" style="padding:12px; font-size:0.8rem; margin:0;" onclick="sendDirectMessage('${p}')">MESAJI GÖNDER</button>
+                    <h4 style="font-size:0.85rem; color:var(--accent); margin-bottom:10px;">${dmTitle}</h4>
+                    <input type="text" id="dmInput_${p}" placeholder="${dmPlace}" style="margin-bottom:10px; padding:12px; font-size:0.85rem; background:rgba(0,0,0,0.5);">
+                    <button class="btn btn-sub" style="padding:12px; font-size:0.8rem; margin:0;" onclick="sendDirectMessage('${p}')">${dmBtn}</button>
                 </div>
-                <h4 style="font-size:0.9rem; margin-bottom:10px; color:var(--text-muted);">Son Raporlar</h4>
+                <h4 style="font-size:0.9rem; margin-bottom:10px; color:var(--text-muted);">${repTitle}</h4>
             `;
             
             if(snap.empty) {
-                html += `<div style="text-align:center; color:white;">Hastanın henüz analiz verisi yok.</div>`;
+                html += `<div style="text-align:center; color:white;">${currentLang === 'tr' ? 'Hastanın henüz analiz verisi yok.' : 'No analysis data yet.'}</div>`;
             } else {
                 snap.forEach(doc => {
                     const d = doc.data();
-                    html += `<div class="history-box" onclick="openDetail(\`${d.fullText.replace(/`/g, "'")}\`, true)">🕒 ${d.date}<br><span style="color:white; font-weight:bold;">🍽️ ${d.mealName}</span> (Puan: ${d.score})</div>`;
+                    html += `<div class="history-box" onclick="openDetail(\`${d.fullText.replace(/`/g, "'")}\`, true)">🕒 ${d.date}<br><span style="color:white; font-weight:bold;">🍽️ ${d.mealName}</span> (${currentLang === 'tr' ? 'Puan' : 'Score'}: ${d.score})</div>`;
                 });
             }
             
-            document.getElementById('modalTitle').innerText = "Danışan Detayı";
+            document.getElementById('modalTitle').innerText = currentLang === 'tr' ? "Danışan Detayı" : "Client Detail";
             document.getElementById('modalBody').innerHTML = html; 
             document.getElementById('detailModal').style.display = 'block';
         });
@@ -1015,27 +1093,28 @@
     async function sendDirectMessage(patientName) {
         const inputField = document.getElementById('dmInput_' + patientName);
         const msg = inputField.value.trim();
-        if(!msg) return alert("Lütfen bir mesaj yazın.");
+        if(!msg) return alert(currentLang === 'tr' ? "Lütfen bir mesaj yazın." : "Please write a message.");
         
         try {
             const me = (auth.currentUser.displayName || localStorage.getItem('registered_u_' + auth.currentUser.email) || auth.currentUser.email.split('@')[0]).toLowerCase();
+            const prefix = currentLang === 'tr' ? "👨‍⚕️ Diyetisyeniniz: " : "👨‍⚕️ Dietician: ";
             await db.collection('notifications').add({ 
                 toUser: patientName, 
                 fromUser: me, 
-                message: "👨‍⚕️ Diyetisyeniniz: " + msg, 
+                message: prefix + msg, 
                 timestamp: Date.now() 
             });
             inputField.value = '';
-            alert("Mesaj hastaya başarıyla iletildi!");
+            alert(currentLang === 'tr' ? "Mesaj hastaya başarıyla iletildi!" : "Message sent successfully!");
         } catch(error) {
-            alert("Mesaj gönderilemedi: " + error.message);
+            alert((currentLang === 'tr' ? "Mesaj gönderilemedi: " : "Failed to send message: ") + error.message);
         }
     }
 
     // --- LARA VE SPOR PLANLAMA ---
     async function askLara() {
-        const inp = document.getElementById('laraInput'); 
-        const disp = document.getElementById('laraChatDisplay'); 
+        const inp = document.getElementById('laraInput') || document.getElementById('laraInputModal'); 
+        const disp = document.getElementById('laraChatDisplay') || document.getElementById('laraChatDisplayModal'); 
         const q = inp.value.trim(); 
         
         if(!q) return;
@@ -1054,7 +1133,7 @@
             disp.innerHTML += `<div class="msg-lara">${d.analysis}</div>`; 
             disp.scrollTop = disp.scrollHeight;
         } catch(e) { 
-            disp.innerHTML += `<div class="msg-lara" style="background:var(--danger);">Hata oluştu. Lütfen bağlantınızı kontrol edin.</div>`; 
+            disp.innerHTML += `<div class="msg-lara" style="background:var(--danger);">${currentLang === 'tr' ? 'Hata oluştu. Lütfen bağlantınızı kontrol edin.' : 'Error occurred. Please check connection.'}</div>`; 
         }
     }
 
@@ -1074,7 +1153,7 @@
             document.getElementById('sportResultArea').style.display = 'block'; 
             document.getElementById('sportPlanContent').innerText = d.analysis;
         } catch(e) { 
-            alert("Hata oluştu. Lütfen tekrar deneyin."); 
+            alert(currentLang === 'tr' ? "Hata oluştu. Lütfen tekrar deneyin." : "Error occurred. Please try again."); 
             resetSportModal(); 
         }
     }
@@ -1085,18 +1164,18 @@
         const me = (auth.currentUser.displayName || localStorage.getItem('registered_u_' + auth.currentUser.email) || auth.currentUser.email.split('@')[0]).toLowerCase();
         const q = await db.collection('dieticians').where('code', '==', c).get();
         
-        if(q.empty) return alert("Hatalı Kod Girdiniz.");
+        if(q.empty) return alert(currentLang === 'tr' ? "Hatalı Kod Girdiniz." : "Invalid Code.");
         
         const dID = q.docs[0].id;
         await db.collection('dieticians').doc(dID).update({ patients: firebase.firestore.FieldValue.arrayUnion(me) });
         await db.collection('partner_data').doc(me).update({ linkedDietician: dID });
         
-        alert("Diyetisyene başarıyla bağlandınız."); 
+        alert(currentLang === 'tr' ? "Diyetisyene başarıyla bağlandınız." : "Successfully connected to Dietician."); 
         checkDieticianLink();
     }
 
     async function disconnectDietician() {
-        if(!confirm("Diyetisyeninizden ayrılmak istediğinize emin misiniz?")) return;
+        if(!confirm(currentLang === 'tr' ? "Diyetisyeninizden ayrılmak istediğinize emin misiniz?" : "Are you sure you want to disconnect?")) return;
         const me = (auth.currentUser.displayName || localStorage.getItem('registered_u_' + auth.currentUser.email) || auth.currentUser.email.split('@')[0]).toLowerCase();
         const doc = await db.collection('partner_data').doc(me).get();
         const dID = doc.data().linkedDietician;
@@ -1105,7 +1184,7 @@
             await db.collection('dieticians').doc(dID).update({ patients: firebase.firestore.FieldValue.arrayRemove(me) });
             await db.collection('partner_data').doc(me).update({ linkedDietician: firebase.firestore.FieldValue.delete() });
         }
-        alert("Bağlantı başarıyla kesildi."); 
+        alert(currentLang === 'tr' ? "Bağlantı başarıyla kesildi." : "Disconnected successfully."); 
         checkDieticianLink();
     }
 
@@ -1113,8 +1192,8 @@
         const me = (auth.currentUser.displayName || localStorage.getItem('registered_u_' + auth.currentUser.email) || auth.currentUser.email.split('@')[0]).toLowerCase();
         db.collection('partner_data').doc(me).get().then(doc => {
             if(doc.exists && doc.data().linkedDietician) {
-                // GÜNCELLENDİ: Metin değiştirildi. Altındaki ayrıl butonu zaten HTML'de hazır bekliyordu.
-                document.getElementById('dietStatus').innerText = "Diyetisyeninize Bağlanıldı: @" + doc.data().linkedDietician;
+                const pre = currentLang === 'tr' ? "Diyetisyeninize Bağlanıldı: @" : "Connected to: @";
+                document.getElementById('dietStatus').innerText = pre + doc.data().linkedDietician;
                 document.getElementById('dietSearchMode').style.display = 'none';
                 document.getElementById('dietInfoMode').style.display = 'block';
             } else {
@@ -1138,7 +1217,7 @@
     }
     
     function openDetail(txt, isFromDietician = false) { 
-        document.getElementById('modalTitle').innerText = "Öğün Detayı"; 
+        document.getElementById('modalTitle').innerText = currentLang === 'tr' ? "Öğün Detayı" : "Meal Detail"; 
         document.getElementById('modalBody').innerHTML = `<div style="white-space:pre-line;">${txt}</div>`; 
         
         if(isFromDietician) {
@@ -1174,14 +1253,14 @@
         try { 
             await auth.signInWithEmailAndPassword(document.getElementById('lEmail').value, document.getElementById('lPass').value); 
         } catch(e) { 
-            alert("Giriş Hatası: Bilgilerinizi kontrol edin. (" + e.message + ")"); 
+            alert((currentLang === 'tr' ? "Giriş Hatası: " : "Login Error: ") + e.message); 
         } 
     }
     
     async function doReset() { 
         const email = document.getElementById('lEmail').value; 
-        if(!email) return alert("Lütfen e-posta adresinizi yazın."); 
-        auth.sendPasswordResetEmail(email).then(() => alert("Şifre sıfırlama e-postası gönderildi.")).catch(e => alert("Hata: " + e.message)); 
+        if(!email) return alert(currentLang === 'tr' ? "Lütfen e-posta adresinizi yazın." : "Please enter your email."); 
+        auth.sendPasswordResetEmail(email).then(() => alert(currentLang === 'tr' ? "Şifre sıfırlama e-postası gönderildi." : "Password reset email sent.")).catch(e => alert("Hata: " + e.message)); 
     }
     
     // --- KAYIT MANTIĞI (YEREL DEPOLAMA YEDEKLİ) ---
@@ -1190,7 +1269,7 @@
         const pass = document.getElementById('rPass').value;
         const u = document.getElementById('rUser').value.trim();
         
-        if(!email || !pass || !u) return alert("Lütfen tüm alanları doldurun.");
+        if(!email || !pass || !u) return alert(currentLang === 'tr' ? "Lütfen tüm alanları doldurun." : "Please fill all fields.");
         
         generatedCode = Math.floor(100000 + Math.random() * 900000).toString();
         pendingReg = { email, pass, u, role: userRole };
@@ -1203,7 +1282,7 @@
     
     async function verifyAndRegister() {
         const code = document.getElementById('vCode').value.trim();
-        if(code !== generatedCode) return alert("Hatalı kod girdiniz.");
+        if(code !== generatedCode) return alert(currentLang === 'tr' ? "Hatalı kod girdiniz." : "Invalid code.");
         
         try {
             // Güvenlik: Kullanıcı profil senkronizasyonundan önce kaybolmasın diye yerel depolama yazıyoruz
@@ -1214,10 +1293,10 @@
             await cred.user.updateProfile({ displayName: pendingReg.u });
             await db.collection('partner_data').doc(pendingReg.u.toLowerCase()).set({ username: pendingReg.u.toLowerCase(), role: pendingReg.role }, { merge: true });
             
-            alert("Hesabınız başarıyla oluşturuldu! Sisteme yönlendiriliyorsunuz...");
+            alert(currentLang === 'tr' ? "Hesabınız başarıyla oluşturuldu! Yönlendiriliyorsunuz..." : "Account created successfully! Redirecting...");
             location.reload();
         } catch(e) {
-            alert("Kayıt Hatası: " + e.message);
+            alert((currentLang === 'tr' ? "Kayıt Hatası: " : "Registration Error: ") + e.message);
             cancelVerify();
         }
     }
@@ -1261,18 +1340,19 @@
         localStorage.setItem('diet_code_' + u, c); // Anında kalıcılık için
         
         await db.collection('dieticians').doc(u).set({ code: c }, { merge: true }); 
-        alert("Kod başarıyla kaydedildi."); 
+        alert(currentLang === 'tr' ? "Kod başarıyla kaydedildi." : "Code saved successfully."); 
     }
     
     async function sendBroadcast() { 
         const d = (auth.currentUser.displayName || localStorage.getItem('registered_u_' + auth.currentUser.email) || auth.currentUser.email.split('@')[0]).toLowerCase(); 
         const m = document.getElementById('broadcastMsg').value.trim(); 
         const doc = await db.collection('dieticians').doc(d).get(); 
+        const prefix = currentLang === 'tr' ? "👨‍⚕️ Ödev: " : "👨‍⚕️ Task: ";
         doc.data().patients.forEach(p => { 
-            db.collection('notifications').add({ toUser: p, fromUser: d, message: "👨‍⚕️ Ödev: " + m, timestamp: Date.now() }); 
+            db.collection('notifications').add({ toUser: p, fromUser: d, message: prefix + m, timestamp: Date.now() }); 
         }); 
         document.getElementById('broadcastMsg').value = ''; 
-        alert("Duyuru tüm hastalara gönderildi."); 
+        alert(currentLang === 'tr' ? "Duyuru tüm hastalara gönderildi." : "Announcement sent to all patients."); 
     }
     
     function setRole(r, b) { 
@@ -1299,9 +1379,10 @@
         const u = document.getElementById('partnerUser').value.trim().toLowerCase(); 
         const me = (auth.currentUser.displayName || localStorage.getItem('registered_u_' + auth.currentUser.email) || auth.currentUser.email.split('@')[0]).toLowerCase();
         
+        const msg = currentLang === 'tr' ? `@${me} sana takip isteği attı.` : `@${me} sent you a follow request.`;
         // EKLENDİ: type olarak friend_request eklendi ki buton oluşsun.
-        db.collection('notifications').add({ type: 'friend_request', toUser: u, fromUser: me, message: "@"+me+" sana takip isteği attı.", timestamp: Date.now() }); 
-        alert("Takip isteği gönderildi."); 
+        db.collection('notifications').add({ type: 'friend_request', toUser: u, fromUser: me, message: msg, timestamp: Date.now() }); 
+        alert(currentLang === 'tr' ? "Takip isteği gönderildi." : "Follow request sent."); 
     }
     
     function showStreak() { 
@@ -1315,6 +1396,9 @@
     setInterval(() => { 
         if(document.getElementById('clock')) document.getElementById('clock').innerText = new Date().toLocaleTimeString(); 
     }, 1000);
+
+    // Initial language setup check
+    changeLang('tr');
 </script>
 </body>
 </html>
