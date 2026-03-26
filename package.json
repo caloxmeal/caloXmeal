@@ -1,3 +1,8 @@
+{
+  "name": "caloxmeal",
+  "version": "1.0.0",
+  "description": "CaloXmeal",
   "dependencies": {
     "nodemailer": "^6.9.13"
   }
+}
