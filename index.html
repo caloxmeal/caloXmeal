@@ -573,59 +573,73 @@
     
     // Geri butonu için güncel hastayı aklında tutacak değişken
     let currentPatientForBack = null;
+    let notifUnsub = null;
+    let patientsUnsub = null;
 
     const langData = {
         tr: {
             headers: ["YEMEK ADI 🍽️","BESİN DEĞERLERİ 📊","NET TAVSİYE 💡","ÜRÜN ÖZETİ 🔍","SKOR 🎯"],
-            notif: "🔔 Gelen Bildirimler", followers: "Takip Ettiklerin", hist: "TÜM GEÇMİŞ", detail: "Detay Gör 🔍",
-            ana: "📸 ANALİZ ET", retry: "🔄 YENİDEN ANALİZ ET", out: "GÜVENLİ ÇIKIŞ", friend: "👫 DİYET DOSTU ARAMA", lara: "🤖 YZ Diyetisyen: LARA", spor: "🏃‍♂️ SPOR PLANLA",
-            seri: "Seri", loading: "🔍 İNCELENİYOR...", h1: "CaloXmeal", login: "GİRİŞ YAP", reg: "Kayıt Ol", regTitle: "KAYIT OL",
-            dailyMacros: "⭐ Günlük Sağlık Barım",
-            navHomeText: "ANA SAYFA", navMsgText: "MESAJLAR", navProfText: "PROFİL",
-            lblPro: "PROTEİN", lblCarb: "KARB", lblFat: "YAĞ", lblCal: "KALORİ",
-            txtProfInfo: "Üye Profil Bilgileri", txtLast7: "📅 Son 7 Günlük Özet",
-            txtDietConn: "Diyetisyene Bağlan", btnDietConnSub: "KODLA BAĞLAN", btnDietDisconnect: "DİYETİSYENDEN AYRIL",
-            dietCodeInput: "Diyetisyen Kodunu Gir",
-            btnFriendAdd: "EKLE", btnFriendSearch: "SORGULA", partnerUser: "Kullanıcı Adı Girin",
-            laraInput: "Mesajınızı yazın...", btnPdf: "📄 PDF KAYDET",
-            uAge: "YAŞ", uWeight: "KİLO",
-            goalLoss: "Kilo Vermek (-)", goalGain: "Kilo Almak (+)", goalMaintain: "Kiloyu Korumak (=)",
-            btnRoleUser: "DANIŞAN", btnRoleDietician: "DİYETİSYEN", btnRoleUser2: "DANIŞAN", btnRoleDietician2: "DİYETİSYEN",
+            loading: "🔍 İNCELENİYOR...",
+            txtAppName: "CaloXmeal",
+            btnRoleUser: "DANIŞAN", btnRoleDietician: "DİYETİSYEN", 
+            btnRoleUser2: "DANIŞAN", btnRoleDietician2: "DİYETİSYEN",
             lEmail: "E-posta Adresi", lPass: "Şifre", btnForgot: "Şifremi Unuttum?", btnNewReg: "Yeni Kayıt Oluştur", btnLgn: "GİRİŞ YAP",
+            txtRegTitle: "KAYIT OL",
             rEmail: "E-posta Adresi", rUser: "Kullanıcı Adı", rPass: "Şifre", btnRegSub: "HESABI OLUŞTUR", btnBack: "Geri Dön",
             txtVerify: "E-posta adresinize gönderilen 6 haneli kodu giriniz.", vCode: "6 Haneli Kod", btnVerify: "KODU DOĞRULA", btnCancel: "İptal Et",
             txtDietPortal: "Diyetisyen Portalı", txtSetCode: "Özel Kodunuzu Belirleyin:", myDietCodeInput: "Örn: DIET9900", btnSaveCode: "KODU KAYDET",
             txtBroadcast: "📢 Toplu Duyuru / Günlük Ödev", broadcastMsg: "Mesajınızı buraya yazın...", btnBroadcast: "HERKESE GÖNDER", txtMyPatients: "Bağlı Hastalarım",
+            btnOutPortal: "GÜVENLİ ÇIKIŞ",
+            btnAna: "📸 ANALİZ ET", btnRetry: "🔄 YENİDEN ANALİZ ET",
+            txtDailyMacros: "⭐ Günlük Sağlık Barım", lblPro: "PROTEİN", lblCarb: "KARB", lblFat: "YAĞ", lblCal: "KALORİ",
+            btnPdf: "📄 PDF KAYDET", btnSp: "🏃‍♂️ SPOR PLANLA",
+            txtLaraTitle: "🤖 YZ Diyetisyen: LARA", laraInput: "Mesajınızı yazın...", laraInputModal: "Mesajınızı yazın...",
+            txtNotHead: "🔔 Gelen Bildirimler",
+            btnFriendToggle: "👫 DİYET DOSTU ARAMA", partnerUser: "Kullanıcı Adı Girin", btnFriendAdd: "EKLE", btnFriendSearch: "SORGULA",
+            txtProfInfo: "Üye Profil Bilgileri", uAge: "YAŞ", uWeight: "KİLO",
+            goalLoss: "Kilo Vermek (-)", goalGain: "Kilo Almak (+)", goalMaintain: "Kiloyu Korumak (=)",
+            txtDietConn: "Diyetisyene Bağlan", dietCodeInput: "Diyetisyen Kodunu Gir", btnDietConnSub: "KODLA BAĞLAN", btnDietDisconnect: "DİYETİSYENDEN AYRIL",
+            txtLast7: "📅 Son 7 Günlük Özet", btnHistToggle: "TÜM GEÇMİŞ", btnOut: "GÜVENLİ ÇIKIŞ",
+            navHomeText: "ANA SAYFA", navMsgText: "MESAJLAR", navProfText: "PROFİL",
+            txtFriendsHead: "Takip Ettiklerin",
             txtSpTitle: "🏋️ Spor Programı Hazırlığı", txtSpSubtitle: "Size en uygun programı hazırlamam için:", sqAge: "Yaşınız", sqWeight: "Kilonuz (kg)", sqDays: "Haftada kaç gün spor yapabilirsiniz?",
             sqGoalLoss: "Yağ Yakımı", sqGoalMuscle: "Kas Kütlesi", sqGoalKeep: "Form Koruma", sqEquipment: "Mekan (Ev/Salon) ve Ekipman Durumu", sqInjury: "Sakatlık veya engel var mı?",
             btnSpSubmit: "PROGRAMI OLUŞTUR", txtSpLoading: "PLANINIZ OLUŞTURULUYOR... <br><br> Lütfen Bekleyin.", txtSpResultTitle: "Size Özel Spor Planı", btnSpDownload: "📄 PDF OLARAK İNDİR", btnSpReset: "YENİDEN DÜZENLE", 
-            btnLaraCloseModal: "Kapat", sportModalCloseBtn: "Kapat", modalTitle: "Analiz Detayı", btnModalBack: "🔙 GERİ GİT", btnModalClose: "KAPAT", txtLaraTitleModal: "🤖 YZ Diyetisyen: LARA", btnOutPortal: "GÜVENLİ ÇIKIŞ"
+            txtLaraTitleModal: "🤖 YZ Diyetisyen: LARA", btnLaraCloseModal: "Kapat", sportModalCloseBtn: "Kapat",
+            modalTitle: "Analiz Detayı", btnModalBack: "🔙 GERİ GİT", btnModalClose: "KAPAT",
+            txtSeri: "Seri"
         },
         en: {
             headers: ["MEAL NAME 🍽️","NUTRITION 📊","ADVICE 💡","SUMMARY 🔍","SCORE 🎯"],
-            notif: "🔔 Notifications", followers: "Following", hist: "ALL HISTORY", detail: "View Detail 🔍",
-            ana: "📸 ANALYZE", retry: "🔄 RE-ANALYZE", out: "SECURE LOGOUT", friend: "👫 FIND DIET PARTNER", lara: "🤖 AI Dietician: LARA", spor: "🏃‍♂️ PLAN SPORT",
-            seri: "Streak", loading: "🔍 ANALYZING...", h1: "CaloXmeal", login: "LOGIN", reg: "Sign Up", regTitle: "SIGN UP",
-            dailyMacros: "⭐ Daily Health Bar",
-            navHomeText: "HOME", navMsgText: "MESSAGES", navProfText: "PROFILE",
-            lblPro: "PROTEIN", lblCarb: "CARB", lblFat: "FAT", lblCal: "CALORIES",
-            txtProfInfo: "Member Profile Info", txtLast7: "📅 Last 7 Days Summary",
-            txtDietConn: "Connect to Dietician", btnDietConnSub: "CONNECT", btnDietDisconnect: "DISCONNECT DIETICIAN",
-            dietCodeInput: "Enter Dietician Code",
-            btnFriendAdd: "ADD", btnFriendSearch: "SEARCH", partnerUser: "Enter Username",
-            laraInput: "Type your message...", btnPdf: "📄 SAVE PDF",
-            uAge: "AGE", uWeight: "WEIGHT",
-            goalLoss: "Lose Weight (-)", goalGain: "Gain Weight (+)", goalMaintain: "Maintain Weight (=)",
-            btnRoleUser: "CLIENT", btnRoleDietician: "DIETICIAN", btnRoleUser2: "CLIENT", btnRoleDietician2: "DIETICIAN",
+            loading: "🔍 ANALYZING...",
+            txtAppName: "CaloXmeal",
+            btnRoleUser: "CLIENT", btnRoleDietician: "DIETICIAN", 
+            btnRoleUser2: "CLIENT", btnRoleDietician2: "DIETICIAN",
             lEmail: "Email Address", lPass: "Password", btnForgot: "Forgot Password?", btnNewReg: "Create New Account", btnLgn: "LOGIN",
+            txtRegTitle: "SIGN UP",
             rEmail: "Email Address", rUser: "Username", rPass: "Password", btnRegSub: "CREATE ACCOUNT", btnBack: "Go Back",
             txtVerify: "Enter the 6-digit code sent to your email.", vCode: "6-Digit Code", btnVerify: "VERIFY CODE", btnCancel: "Cancel",
             txtDietPortal: "Dietician Portal", txtSetCode: "Set Your Private Code:", myDietCodeInput: "E.g. DIET9900", btnSaveCode: "SAVE CODE",
             txtBroadcast: "📢 Mass Announcement / Task", broadcastMsg: "Type your message here...", btnBroadcast: "SEND TO ALL", txtMyPatients: "My Linked Patients",
+            btnOutPortal: "SECURE LOGOUT",
+            btnAna: "📸 ANALYZE", btnRetry: "🔄 RE-ANALYZE",
+            txtDailyMacros: "⭐ Daily Health Bar", lblPro: "PROTEIN", lblCarb: "CARB", lblFat: "FAT", lblCal: "CALORIES",
+            btnPdf: "📄 SAVE PDF", btnSp: "🏃‍♂️ PLAN SPORT",
+            txtLaraTitle: "🤖 AI Dietician: LARA", laraInput: "Type your message...", laraInputModal: "Type your message...",
+            txtNotHead: "🔔 Notifications",
+            btnFriendToggle: "👫 FIND DIET PARTNER", partnerUser: "Enter Username", btnFriendAdd: "ADD", btnFriendSearch: "SEARCH",
+            txtProfInfo: "Member Profile Info", uAge: "AGE", uWeight: "WEIGHT",
+            goalLoss: "Lose Weight (-)", goalGain: "Gain Weight (+)", goalMaintain: "Maintain Weight (=)",
+            txtDietConn: "Connect to Dietician", dietCodeInput: "Enter Dietician Code", btnDietConnSub: "CONNECT", btnDietDisconnect: "DISCONNECT DIETICIAN",
+            txtLast7: "📅 Last 7 Days Summary", btnHistToggle: "ALL HISTORY", btnOut: "SECURE LOGOUT",
+            navHomeText: "HOME", navMsgText: "MESSAGES", navProfText: "PROFILE",
+            txtFriendsHead: "Following",
             txtSpTitle: "🏋️ Sport Plan Setup", txtSpSubtitle: "For me to prepare the best program:", sqAge: "Your Age", sqWeight: "Your Weight (kg)", sqDays: "Days per week for sports?",
             sqGoalLoss: "Fat Loss", sqGoalMuscle: "Muscle Gain", sqGoalKeep: "Maintain Shape", sqEquipment: "Location (Home/Gym) & Equipment", sqInjury: "Any injuries or disabilities?",
             btnSpSubmit: "CREATE PROGRAM", txtSpLoading: "CREATING YOUR PLAN... <br><br> Please Wait.", txtSpResultTitle: "Your Custom Sport Plan", btnSpDownload: "📄 DOWNLOAD AS PDF", btnSpReset: "RE-EDIT", 
-            btnLaraCloseModal: "Close", sportModalCloseBtn: "Close", modalTitle: "Analysis Detail", btnModalBack: "🔙 GO BACK", btnModalClose: "CLOSE", txtLaraTitleModal: "🤖 AI Dietician: LARA", btnOutPortal: "SECURE LOGOUT"
+            txtLaraTitleModal: "🤖 AI Dietician: LARA", btnLaraCloseModal: "Close", sportModalCloseBtn: "Close",
+            modalTitle: "Analysis Detail", btnModalBack: "🔙 GO BACK", btnModalClose: "CLOSE",
+            txtSeri: "Streak"
         }
     };
 
@@ -641,8 +655,21 @@
         if(tabId === 'tab-profile') loadProfileHistory7Days();
     }
 
+    // --- ORTAK GEÇMİŞ YAZDIRMA FONKSİYONU ---
+    function renderFullHistory() {
+        let arr = JSON.parse(localStorage.getItem('history_' + auth.currentUser.uid) || '[]');
+        const now = Date.now();
+        const last24 = arr.filter(h => (now - h.unix) < 86400000);
+        document.getElementById('historyList').innerHTML = last24.map(h => `
+            <div class="history-box" onclick="openDetail(\`${h.detail.replace(/`/g, "'")}\`)">
+                <div class="history-meta">🕒 ${h.date} | ⭐ ${currentLang === 'tr' ? 'Puan' : 'Score'}: ${h.summary}/10</div>
+                <div class="history-meal">🍽️ ${h.meal}</div>
+            </div>`).join('');
+    }
+
     // --- 7 GÜNLÜK PROFİL GEÇMİŞİ FONKSİYONU ---
     function loadProfileHistory7Days() {
+        if(!auth.currentUser) return;
         let arr = JSON.parse(localStorage.getItem('history_' + auth.currentUser.uid) || '[]');
         const now = Date.now(); 
         const sevenDaysInMillis = 7 * 24 * 60 * 60 * 1000;
@@ -679,6 +706,7 @@
     }
 
     function calculateDailyMacros() {
+        if(!auth.currentUser) return;
         let arr = JSON.parse(localStorage.getItem('history_' + auth.currentUser.uid) || '[]');
         const today = new Date().toLocaleDateString();
         dailyTotals = { protein: 0, carb: 0, fat: 0, cal: 0 };
@@ -697,32 +725,27 @@
         updateMacroUI();
     }
 
-    // --- KAPSAMLI DİL DEĞİŞTİRME MOTORU ---
+    // --- DEVASA DİL DEĞİŞTİRME MOTORU ---
     function changeLang(l) {
         currentLang = l; 
         const d = langData[l];
         
-        // Helper function for safe text/placeholder updates
-        function setText(id, text) {
-            let el = document.getElementById(id);
+        // Statik metinleri ve placeholderları güncelle
+        for (const [key, value] of Object.entries(d)) {
+            let el = document.getElementById(key);
             if(el) {
-                if(el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') el.placeholder = text;
-                else el.innerText = text;
+                if(el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') el.placeholder = value;
+                else el.innerHTML = value;
             }
         }
 
-        // Apply translations map dynamically
-        for (const [key, value] of Object.entries(d)) {
-            if(typeof value === 'string') setText(key, value);
-        }
-
-        // Special handling for freeze layer loading texts (needs innerHTML/style checks)
+        // Kamera yükleme ekranı yazısını güncelle
         const freeze = document.getElementById('freezeLayer');
         if(freeze && freeze.style.display !== 'none' && freeze.innerHTML.includes('...')) {
             freeze.innerHTML = d.loading;
         }
 
-        // Special handling for goal select options
+        // Açılır liste (select) elemanlarını güncelle
         let uG = document.getElementById('uGoal');
         if(uG) {
             uG.options[0].text = d.goalLoss;
@@ -736,14 +759,45 @@
             sqG.options[1].text = d.sqGoalMuscle;
             sqG.options[2].text = d.sqGoalKeep;
         }
-        
-        // Refresh specific dynamic histories if open
-        loadProfileHistory7Days();
-        checkDieticianLink(); 
-        
-        // Greet message check
+
+        // Lara hoşgeldin mesajını güncelle
         let greet = document.getElementById('txtLaraGreet');
-        if(greet) greet.innerText = (l === 'tr') ? "Merhaba! Ben Lara. Size diyet, yemek ve spor konularında yardımcı olabilirim. Ne sormak istersiniz?" : "Hello! I'm Lara. I can help you with diet, meals, and sports. What would you like to ask?";
+        if(greet) {
+            greet.innerText = (l === 'tr') 
+                ? "Merhaba! Ben Lara. Size diyet, yemek ve spor konularında yardımcı olabilirim. Ne sormak istersiniz?" 
+                : "Hello! I'm Lara. I can help you with diet, meals, and sports. What would you like to ask?";
+        }
+
+        // Eğer kullanıcı giriş yapmışsa dinamik verileri yeniden renderla
+        if(auth.currentUser) {
+            loadProfileHistory7Days();
+            
+            if(document.getElementById('historyPanel').style.display === 'block') {
+                renderFullHistory();
+            }
+
+            if(document.getElementById('partnerResult').innerHTML !== '') {
+                checkPartner();
+            }
+
+            checkDieticianLink();
+
+            // Sadece danışansa bildirimleri tekrar dinle (buton isimleri güncellensin diye)
+            if(document.getElementById('mainView').style.display === 'block') {
+                listenNotifications();
+            }
+
+            // Sadece diyetisyense hastaları tekrar dinle (son yemek yazısı güncellensin diye)
+            if(document.getElementById('dieticianView').style.display === 'block') {
+                const safeName = auth.currentUser.displayName ? auth.currentUser.displayName : auth.currentUser.email.split('@')[0];
+                listenPatients(safeName.toLowerCase());
+            }
+
+            // Diyetisyen hasta detay modülü açıksa onu da güncelle
+            if(document.getElementById('detailModal').style.display === 'block' && currentPatientForBack) {
+                showPatientHistory(currentPatientForBack);
+            }
+        }
     }
 
     // --- AUTH İŞLEMLERİ ---
@@ -939,20 +993,13 @@
         p.style.display = p.style.display === 'none' ? 'block' : 'none';
         
         if(p.style.display === 'block') {
-            let arr = JSON.parse(localStorage.getItem('history_' + auth.currentUser.uid) || '[]');
-            const now = Date.now(); 
-            const last24 = arr.filter(h => (now - h.unix) < 86400000); 
-            
-            document.getElementById('historyList').innerHTML = last24.map(h => `
-                <div class="history-box" onclick="openDetail(\`${h.detail.replace(/`/g, "'")}\`)">
-                    <div class="history-meta">🕒 ${h.date} | ⭐ ${currentLang === 'tr' ? 'Puan' : 'Score'}: ${h.summary}/10</div>
-                    <div class="history-meal">🍽️ ${h.meal}</div>
-                </div>`).join('');
+            renderFullHistory();
         }
     }
 
     function checkPartner() {
         const u = document.getElementById('partnerUser').value.trim().toLowerCase();
+        if(!u) return;
         db.collection('partner_data').doc(u).collection('history').orderBy('unix', 'desc').limit(1).get().then(snap => {
             const res = document.getElementById('partnerResult');
             if(!snap.empty) {
@@ -971,8 +1018,11 @@
 
     // --- BİLDİRİM VE SOSYAL İŞLEMLER ---
     function listenNotifications() {
+        if(!auth.currentUser) return;
+        if(notifUnsub) notifUnsub(); // Önceki dinleyiciyi temizle
+        
         const me = (auth.currentUser.displayName || localStorage.getItem('registered_u_' + auth.currentUser.email) || auth.currentUser.email.split('@')[0]).toLowerCase();
-        db.collection('notifications').where('toUser', '==', me).onSnapshot(snap => {
+        notifUnsub = db.collection('notifications').where('toUser', '==', me).onSnapshot(snap => {
             const list = document.getElementById('notifList'); 
             document.getElementById('notifBadge').innerText = snap.size;
             document.getElementById('notifBadge').style.display = snap.size > 0 ? 'flex' : 'none'; 
@@ -1012,7 +1062,7 @@
         alert(currentLang === 'tr' ? "Takip isteği kabul edildi!" : "Follow request accepted!");
     }
 
-    // --- DİYETİSYEN PORTALI İŞLEMLERİ (KOD KALICI HALE GETİRİLDİ) ---
+    // --- DİYETİSYEN PORTALI İŞLEMLERİ ---
     async function handleDieticianPortal(u) {
         // Yerel depolamadan anında yükle
         const localCode = localStorage.getItem('diet_code_' + u);
@@ -1033,7 +1083,8 @@
     }
 
     function listenPatients(d) {
-        db.collection('dieticians').doc(d).onSnapshot(doc => {
+        if(patientsUnsub) patientsUnsub(); // Önceki dinleyiciyi temizle
+        patientsUnsub = db.collection('dieticians').doc(d).onSnapshot(doc => {
             const list = document.getElementById('patientList'); 
             list.innerHTML = '';
             if(doc.exists && doc.data().patients) {
@@ -1263,7 +1314,7 @@
         auth.sendPasswordResetEmail(email).then(() => alert(currentLang === 'tr' ? "Şifre sıfırlama e-postası gönderildi." : "Password reset email sent.")).catch(e => alert("Hata: " + e.message)); 
     }
     
-    // --- KAYIT MANTIĞI (YEREL DEPOLAMA YEDEKLİ) ---
+    // --- KAYIT MANTIĞI ---
     async function doRegister() { 
         const email = document.getElementById('rEmail').value.trim();
         const pass = document.getElementById('rPass').value;
@@ -1380,7 +1431,6 @@
         const me = (auth.currentUser.displayName || localStorage.getItem('registered_u_' + auth.currentUser.email) || auth.currentUser.email.split('@')[0]).toLowerCase();
         
         const msg = currentLang === 'tr' ? `@${me} sana takip isteği attı.` : `@${me} sent you a follow request.`;
-        // EKLENDİ: type olarak friend_request eklendi ki buton oluşsun.
         db.collection('notifications').add({ type: 'friend_request', toUser: u, fromUser: me, message: msg, timestamp: Date.now() }); 
         alert(currentLang === 'tr' ? "Takip isteği gönderildi." : "Follow request sent."); 
     }
@@ -1397,7 +1447,7 @@
         if(document.getElementById('clock')) document.getElementById('clock').innerText = new Date().toLocaleTimeString(); 
     }, 1000);
 
-    // Initial language setup check
+    // Başlangıç dilini ayarla
     changeLang('tr');
 </script>
 </body>
