@@ -661,18 +661,21 @@
     // --- AUTH İŞLEMLERİ ---
     auth.onAuthStateChanged(user => {
         if (user) {
-            db.collection('partner_data').doc(user.displayName.toLowerCase()).get().then(doc => {
+            // Güvenli kullanıcı adı: displayName boşsa e-postanın @ öncesi kısmını alır. Çökmeyi engeller.
+            const safeName = user.displayName ? user.displayName : user.email.split('@')[0];
+            
+            db.collection('partner_data').doc(safeName.toLowerCase()).get().then(doc => {
                 const data = doc.data() || {};
                 if(data.role === 'dietician') {
                     toggleView('dieticianView'); 
-                    document.getElementById('dMail').innerText = "@" + user.displayName; 
-                    handleDieticianPortal(user.displayName.toLowerCase());
+                    document.getElementById('dMail').innerText = "@" + safeName; 
+                    handleDieticianPortal(safeName.toLowerCase());
                 } else {
                     toggleView('mainView'); 
                     document.getElementById('topHeader').style.display = 'flex';
                     document.getElementById('bottomNav').style.display = 'flex';
                     switchTab('tab-home'); 
-                    document.getElementById('uMail').innerText = "@" + user.displayName;
+                    document.getElementById('uMail').innerText = "@" + safeName;
                     setupUser(user); 
                     startCamera(); 
                     listenNotifications(); 
@@ -681,6 +684,13 @@
                     checkDieticianLink(); 
                     calculateDailyMacros();
                 }
+            }).catch(e => {
+                console.error("Giriş sonrası veri hatası:", e);
+                // Olası bir Firestore veritabanı kısıtlamasında kullanıcının dışarıda kalmasını önler:
+                toggleView('mainView'); 
+                document.getElementById('topHeader').style.display = 'flex';
+                document.getElementById('bottomNav').style.display = 'flex';
+                switchTab('tab-home');
             });
         } else { 
             document.getElementById('topHeader').style.display = 'none';
@@ -706,7 +716,7 @@
             goal: document.getElementById('uGoal').value 
         };
         localStorage.setItem('userData_' + auth.currentUser.uid, JSON.stringify(d));
-        db.collection('partner_data').doc(auth.currentUser.displayName.toLowerCase()).set(d, {merge:true});
+        db.collection('partner_data').doc((auth.currentUser.displayName || auth.currentUser.email.split('@')[0]).toLowerCase()).set(d, {merge:true});
     }
 
     // --- KAMERA VE ANALİZ İŞLEMLERİ ---
@@ -797,7 +807,7 @@
 
     // --- GEÇMİŞ VE VERİTABANI İŞLEMLER ---
     function saveHistory(s, r, m) {
-        const me = auth.currentUser.displayName.toLowerCase(); 
+        const me = (auth.currentUser.displayName || auth.currentUser.email.split('@')[0]).toLowerCase(); 
         const dateStr = new Date().toLocaleString(); 
         const unix = Date.now();
         
@@ -846,7 +856,7 @@
 
     // --- BİLDİRİM VE SOSYAL İŞLEMLER ---
     function listenNotifications() {
-        db.collection('notifications').where('toUser', '==', auth.currentUser.displayName.toLowerCase()).onSnapshot(snap => {
+        db.collection('notifications').where('toUser', '==', (auth.currentUser.displayName || auth.currentUser.email.split('@')[0]).toLowerCase()).onSnapshot(snap => {
             const list = document.getElementById('notifList'); 
             document.getElementById('notifBadge').innerText = snap.size;
             document.getElementById('notifBadge').style.display = snap.size > 0 ? 'flex' : 'none'; 
@@ -933,7 +943,7 @@
         try {
             await db.collection('notifications').add({ 
                 toUser: patientName, 
-                fromUser: auth.currentUser.displayName.toLowerCase(), 
+                fromUser: (auth.currentUser.displayName || auth.currentUser.email.split('@')[0]).toLowerCase(), 
                 message: "👨‍⚕️ Diyetisyeniniz: " + msg, 
                 timestamp: Date.now() 
             });
@@ -994,7 +1004,7 @@
     // --- DİYETİSYEN BAĞLANTILARI ---
     async function connectToDietician() {
         const c = document.getElementById('dietCodeInput').value.trim().toUpperCase();
-        const me = auth.currentUser.displayName.toLowerCase();
+        const me = (auth.currentUser.displayName || auth.currentUser.email.split('@')[0]).toLowerCase();
         const q = await db.collection('dieticians').where('code', '==', c).get();
         
         if(q.empty) return alert("Hatalı Kod Girdiniz.");
@@ -1009,7 +1019,7 @@
 
     async function disconnectDietician() {
         if(!confirm("Diyetisyeninizden ayrılmak istediğinize emin misiniz?")) return;
-        const me = auth.currentUser.displayName.toLowerCase();
+        const me = (auth.currentUser.displayName || auth.currentUser.email.split('@')[0]).toLowerCase();
         const doc = await db.collection('partner_data').doc(me).get();
         const dID = doc.data().linkedDietician;
         
@@ -1022,7 +1032,7 @@
     }
 
     function checkDieticianLink() {
-        db.collection('partner_data').doc(auth.currentUser.displayName.toLowerCase()).get().then(doc => {
+        db.collection('partner_data').doc((auth.currentUser.displayName || auth.currentUser.email.split('@')[0]).toLowerCase()).get().then(doc => {
             if(doc.exists && doc.data().linkedDietician) {
                 document.getElementById('dietStatus').innerText = "Diyetisyenim: @" + doc.data().linkedDietician;
                 document.getElementById('dietSearchMode').style.display = 'none';
@@ -1084,7 +1094,8 @@
         try { 
             await auth.signInWithEmailAndPassword(document.getElementById('lEmail').value, document.getElementById('lPass').value); 
         } catch(e) { 
-            alert("Giriş Hatası: Lütfen bilgilerinizi kontrol edin."); 
+            // Giriş hatası daha açıklayıcı yapıldı (Sorun çıkarsa terminalde görmek için)
+            alert("Giriş Hatası: Bilgilerinizi kontrol edin. (" + e.message + ")"); 
         } 
     }
     
@@ -1152,7 +1163,7 @@
     }
     
     function listenFriends() { 
-        db.collection('partner_data').doc(auth.currentUser.displayName.toLowerCase()).onSnapshot(doc => { 
+        db.collection('partner_data').doc((auth.currentUser.displayName || auth.currentUser.email.split('@')[0]).toLowerCase()).onSnapshot(doc => { 
             if(doc.exists && doc.data().friends) { 
                 document.getElementById('friendsListContainer').innerHTML = doc.data().friends.map(f => `<div class="friend-pill" onclick="checkSpecific('${f}')">@${f}</div>`).join(''); 
             } 
@@ -1160,14 +1171,14 @@
     }
     
     async function saveDieticianCode() { 
-        const u = auth.currentUser.displayName.toLowerCase(); 
+        const u = (auth.currentUser.displayName || auth.currentUser.email.split('@')[0]).toLowerCase(); 
         const c = document.getElementById('myDietCodeInput').value.trim().toUpperCase(); 
         await db.collection('dieticians').doc(u).set({ code: c }, { merge: true }); 
         alert("Kod başarıyla kaydedildi."); 
     }
     
     async function sendBroadcast() { 
-        const d = auth.currentUser.displayName.toLowerCase(); 
+        const d = (auth.currentUser.displayName || auth.currentUser.email.split('@')[0]).toLowerCase(); 
         const m = document.getElementById('broadcastMsg').value.trim(); 
         const doc = await db.collection('dieticians').doc(d).get(); 
         doc.data().patients.forEach(p => { 
@@ -1199,7 +1210,7 @@
     
     function sendFriendRequest() { 
         const u = document.getElementById('partnerUser').value.trim().toLowerCase(); 
-        db.collection('notifications').add({ toUser: u, fromUser: auth.currentUser.displayName.toLowerCase(), message: "@"+auth.currentUser.displayName+" takip isteği attı.", timestamp: Date.now() }); 
+        db.collection('notifications').add({ toUser: u, fromUser: (auth.currentUser.displayName || auth.currentUser.email.split('@')[0]).toLowerCase(), message: "@"+(auth.currentUser.displayName || auth.currentUser.email.split('@')[0])+" takip isteği attı.", timestamp: Date.now() }); 
         alert("Takip isteği gönderildi."); 
     }
     
