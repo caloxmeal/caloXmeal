@@ -904,6 +904,7 @@
         document.getElementById('freezeLayer').innerText = langData[currentLang].loading;
         document.getElementById('freezeLayer').style.display = 'flex';
         document.getElementById('btnAna').style.display = 'none';
+        document.getElementById('btnRetry').style.display = 'none'; // Butonu işleme başlarken her ihtimale karşı gizle
         
         const canv = document.createElement('canvas'); 
         canv.width = 640; 
@@ -930,8 +931,12 @@
             resDiv.style.display = 'flex';
             const sections = d.analysis.split(/\d\./).filter(s => s.trim().length > 2);
             
+            const lowerAnalysis = d.analysis.toLowerCase();
+            const invalidKeywords = ["tespit edilemedi", "bulunamadı", "tanımlanamadı", "algılanamadı", "not found", "cannot identify", "not a food", "yemek değil", "geçersiz"];
+            const isInvalid = invalidKeywords.some(kw => lowerAnalysis.includes(kw));
+
             // ANALİZ EDİLMEYEN / BAŞARISIZ OLANLARI GEÇMİŞE KAYDETMEMEK İÇİN GÜVENLİK DUVARI
-            if (sections.length < 3) {
+            if (sections.length < 3 || isInvalid) {
                 throw new Error("Yemek bulunamadı veya analiz başarısız.");
             }
 
@@ -975,7 +980,6 @@
             resDiv.scrollIntoView({ behavior: 'smooth' });
             
         } catch(e) { 
-            // BURASI GÜNCELLENDİ: Yükleme ekranı kalkar, "Yeniden Analiz Et" butonu ekrana gelir.
             alert(currentLang === 'tr' ? "Yemek algılanamadı veya analiz başarısız. Lütfen tekrar deneyiniz." : "No food detected or analysis failed. Please try again."); 
             document.getElementById('freezeLayer').style.display = 'none'; 
             document.getElementById('btnRetry').style.display = 'block'; 
@@ -1070,7 +1074,7 @@
         alert(currentLang === 'tr' ? "Takip isteği kabul edildi!" : "Follow request accepted!");
     }
 
-    // --- DİYETİSYEN PORTALI İŞLEMLERİ ---
+    // --- DİYETİSYEN PORTALI İŞLEMLER ---
     async function handleDieticianPortal(u) {
         // Yerel depolamadan anında yükle
         const localCode = localStorage.getItem('diet_code_' + u);
