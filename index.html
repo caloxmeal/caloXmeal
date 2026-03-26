@@ -178,10 +178,10 @@
         @keyframes pulse { 0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(249, 115, 22, 0.4); } 70% { transform: scale(1.05); box-shadow: 0 0 0 10px rgba(249, 115, 22, 0); } 100% { transform: scale(1); } }
         @keyframes pulse-overlay { 0% { opacity: 0.8; } 50% { opacity: 1; } 100% { opacity: 0.8; } }
         
-        /* GÜNCELLEME: BOYUTLAR KÜÇÜLTÜLDÜ 45px -> 38px */
+        /* GÜNCELLEME: BOYUTLAR 35px'E KÜÇÜLTÜLDÜ VE SİMETRİ İÇİN AYARLANDI */
         .bell-container, .friends-btn { 
             cursor: pointer; display: flex; align-items: center; justify-content: center; 
-            width: 38px; height: 38px; background: rgba(255,255,255,0.05); 
+            width: 35px; height: 35px; background: rgba(255,255,255,0.05); 
             border-radius: 50%; position: relative; border: 1px solid var(--glass-border);
             transition: all 0.2s;
         }
@@ -331,7 +331,7 @@
 <div class="app-card" id="mainCardContainer">
     
     <div id="topHeader" style="display:none; justify-content:space-between; align-items:flex-start; margin-bottom: 25px; position: relative;">
-        <div style="display: flex; align-items: center; gap: 15px; z-index: 10;">
+        <div style="display: flex; align-items: center; gap: 15px; z-index: 10; width: 85px;">
             <span onclick="changeLang('tr')" style="font-size: 1.6rem; cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.2)'" onmouseout="this.style.transform='scale(1)'" title="Türkçe">🇹🇷</span>
             <span onclick="changeLang('en')" style="font-size: 1.6rem; cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.2)'" onmouseout="this.style.transform='scale(1)'" title="English">🇺🇸</span>
         </div>
@@ -343,13 +343,13 @@
             </div>
         </div>
 
-        <div style="display: flex; gap:10px; z-index: 10;">
+        <div style="display: flex; gap:15px; z-index: 10; width: 85px; justify-content: flex-end;">
             <div class="bell-container" onclick="switchTab('tab-messages')" id="bellIcon" style="display:none;">
-                <span class="bell-icon" style="font-size: 1.05rem;">🔔</span>
+                <span class="bell-icon" style="font-size: 1rem;">🔔</span>
                 <span class="notif-badge" id="notifBadge" style="display:none;">0</span>
             </div>
             <div class="friends-btn" id="friendListBtn" onclick="toggleFriends()" style="display:none;">
-                <span style="font-size: 1.05rem;">👤</span>
+                <span style="font-size: 1rem;">👤</span>
                 <div class="friends-dropdown" id="friendsDropdown">
                     <h4 id="txtFriendsHead" style="color:white; margin-bottom:15px; text-align:center; font-size: 0.95rem; font-weight: 800;">Takip Ettiklerin</h4>
                     <div id="friendsListContainer"></div>
@@ -908,10 +908,19 @@
 
     // --- DİYETİSYEN PORTALI İŞLEMLERİ (GÜNCELLENDİ: KOD KALICI HALE GETİRİLDİ) ---
     async function handleDieticianPortal(u) {
+        // Yerel depolamadan anında yükle
+        const localCode = localStorage.getItem('diet_code_' + u);
+        if(localCode) {
+            document.getElementById('currentCodeDisplay').innerText = "KOD: " + localCode;
+            document.getElementById('myDietCodeInput').value = localCode;
+        }
+
+        // Veritabanından dinle
         db.collection('dieticians').doc(u).onSnapshot(doc => {
             if(doc.exists && doc.data().code) {
                 document.getElementById('currentCodeDisplay').innerText = "KOD: " + doc.data().code;
-                document.getElementById('myDietCodeInput').value = doc.data().code; // EKLENDİ: Sayfa yenilense de input içinde de kod kalsın
+                document.getElementById('myDietCodeInput').value = doc.data().code;
+                localStorage.setItem('diet_code_' + u, doc.data().code); // Eşitle
             }
             listenPatients(u);
         });
@@ -1213,6 +1222,9 @@
     async function saveDieticianCode() { 
         const u = (auth.currentUser.displayName || localStorage.getItem('registered_u_' + auth.currentUser.email) || auth.currentUser.email.split('@')[0]).toLowerCase(); 
         const c = document.getElementById('myDietCodeInput').value.trim().toUpperCase(); 
+        
+        localStorage.setItem('diet_code_' + u, c); // EKLENDİ: Anında kalıcılık için
+        
         await db.collection('dieticians').doc(u).set({ code: c }, { merge: true }); 
         alert("Kod başarıyla kaydedildi."); 
     }
