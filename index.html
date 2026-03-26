@@ -929,6 +929,12 @@
             resDiv.innerHTML = ''; 
             resDiv.style.display = 'flex';
             const sections = d.analysis.split(/\d\./).filter(s => s.trim().length > 2);
+            
+            // ANALİZ EDİLMEYEN / BAŞARISIZ OLANLARI GEÇMİŞE KAYDETMEMEK İÇİN GÜVENLİK DUVARI
+            if (sections.length < 3) {
+                throw new Error("Yemek bulunamadı veya analiz başarısız.");
+            }
+
             const headers = langData[currentLang].headers;
             let finalScore = 5; 
             let mealName = "Yemek";
