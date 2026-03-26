@@ -1334,13 +1334,36 @@
         
         if(!email || !pass || !u) return alert(currentLang === 'tr' ? "Lütfen tüm alanları doldurun." : "Please fill all fields.");
         
-        generatedCode = Math.floor(100000 + Math.random() * 900000).toString();
-        pendingReg = { email, pass, u, role: userRole };
-        
-        document.getElementById('regFields').style.display = 'none';
-        document.getElementById('verifyFields').style.display = 'block';
-        
-        alert("TEST BİLGİSİ (Maile gidecek kod): " + generatedCode);
+        const btnRegSub = document.getElementById('btnRegSub');
+        const originalText = btnRegSub.innerText;
+        btnRegSub.innerText = currentLang === 'tr' ? "KOD GÖNDERİLİYOR..." : "SENDING CODE...";
+        btnRegSub.disabled = true;
+
+        try {
+            const response = await fetch('/api/send-code', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: email })
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error || "Mail servisi yanıt vermedi.");
+            }
+
+            generatedCode = data.testKodu.toString();
+            pendingReg = { email, pass, u, role: userRole };
+            
+            document.getElementById('regFields').style.display = 'none';
+            document.getElementById('verifyFields').style.display = 'block';
+
+        } catch (error) {
+            alert((currentLang === 'tr' ? "Bağlantı Hatası: " : "Connection Error: ") + error.message);
+        } finally {
+            btnRegSub.innerText = originalText;
+            btnRegSub.disabled = false;
+        }
     }
     
     async function verifyAndRegister() {
