@@ -876,7 +876,8 @@
 
     function saveUserData() {
         if(!auth.currentUser) return;
-        const d = { 
+        const
+ d = { 
             age: document.getElementById('uAge').value, 
             weight: document.getElementById('uWeight').value, 
             goal: document.getElementById('uGoal').value 
@@ -886,7 +887,7 @@
         db.collection('partner_data').doc(safeName.toLowerCase()).set(d, {merge:true});
     }
 
-    // --- KAMERA VE ANALİZ İŞLEMLERİ ---
+    // --- KAMERA VE ANALİZ İŞLEMLER ---
     function startCamera() {
         const vid = document.getElementById('video');
         if(!vid) return;
