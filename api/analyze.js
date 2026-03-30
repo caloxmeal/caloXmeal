@@ -1,5 +1,5 @@
 // api/analyze.js
-// CaloXmeal — AI Analysis Endpoint (GPT-4o Integrated)
+// CaloXmeal — AI Analysis Endpoint (GPT-4o-mini Integrated for Cost Efficiency)
 // ─────────────────────────────────────────────────────────
 
 // Ön yüzden gelen Base64 resimlerin boyut sınırına takılmasını önlemek için limit artırıldı.
@@ -104,7 +104,7 @@ export default async function handler(req, res) {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                model: 'gpt-4o',
+                model: 'gpt-4o-mini', // MALİYETİ DÜŞÜRMEK İÇİN MODEL BURADA DEĞİŞTİRİLDİ
                 max_tokens: 1000,
                 temperature: 0.3,
                 messages: [
