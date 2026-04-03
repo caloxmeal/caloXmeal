@@ -80,7 +80,7 @@ const buildPrompt = (mode, user_data, lang) => {
 export default async function handler(req, res) {
     if (req.method !== 'POST') return res.status(405).json({ error: 'Method Not Allowed' });
 
-    const { image, user_data, mode, lang = 'tr' } = req.body ?? {};
+    const { image, user_data, mode, lang = 'en' } = req.body ?? {};
 
     if (!ALLOWED_MODES.includes(mode)) return res.status(400).json({ error: 'Geçersiz mod.' });
     if (!user_data) return res.status(400).json({ error: 'Veri eksik.' });
